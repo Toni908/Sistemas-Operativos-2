@@ -6,7 +6,7 @@ static int descriptor = 0;
 int bmount(const char *camino){
     descriptor = open(camino, O_RDWR | O_CREAT, 0666); //Abrimos el fichero
     if(descriptor == FALLO){ 
-        perror(RED "Error"); 
+        perror(RED "Error de mount"); 
         return FALLO;
     }
     return descriptor;
@@ -14,8 +14,12 @@ int bmount(const char *camino){
 
 //Funcion para desmontar el dispotivo viertual
 int bumount(){
-    //Programar
-    return FALLO; //esto solo es para poder programar lo otro
+    if(close(descriptor) == FALLO){
+        perror(RED "Error de umount");
+        return FALLO;
+    }
+    descriptor = EXITO; //para dejarlo limpio
+    return descriptor;
 }
 
 //Funcion que sirve para escribir en un bloque
@@ -23,12 +27,12 @@ int bwrite(unsigned int nbloque, const void *buf){
     off_t desplazamiento = nbloque * BLOCKSIZE; //calculamos el desplazamiento para saber donde empezar a escribir
     off_t pos = lseek(descriptor, desplazamiento , SEEK_SET); //movemos el puntero del fichero en el offset correto
     if(pos == FALLO){
-        perror(RED "Error"); 
+        perror(RED "Error de pos en write"); 
         return FALLO;
     }
-    size_t bytes = write(descriptor, buf, BLOCKSIZE); //volcamos el contenido del buffer en el dispositivo virtual
+    ssize_t bytes = write(descriptor, buf, BLOCKSIZE); //volcamos el contenido del buffer en el dispositivo virtual, es ssize_t segun la doc de c. Una s es para unasigned, nunca sabremos si da error
     if(bytes == FALLO){
-        perror(RED "Error"); 
+        perror(RED "Error de escritura de bytes"); 
         return FALLO;
     }
     return bytes;
@@ -36,5 +40,16 @@ int bwrite(unsigned int nbloque, const void *buf){
 
 //Funcion para leer un bloque
 int bread(unsigned int nbloque, void *buf){
-    //Programar
+    off_t desplazamiento = nbloque * BLOCKSIZE; //calculamos el desplazamiento para saber donde empezar a leer
+    off_t pos = lseek(descriptor, desplazamiento , SEEK_SET); //movemos el puntero del fichero en el offset correto
+    if(pos == FALLO){
+        perror(RED "Error de pos en read"); 
+        return FALLO;
+    }
+    ssize_t bytes = read(descriptor, buf, BLOCKSIZE); //leemos el contenido del bloque
+    if(bytes == FALLO){
+        perror(RED "Error de lectura de bytes"); 
+        return FALLO;
+    }
+    return bytes;
 }
