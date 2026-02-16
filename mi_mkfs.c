@@ -8,5 +8,5 @@ int main(int argc, char **argv){
         memset(buffer, 0 , BLOCKSIZE);
         bwrite(i, buffer);
     }
-    bunmount();  //desmontamos el dispostivo virtual
+    bumount();  //desmontamos el dispostivo virtual
 }
