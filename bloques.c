@@ -4,6 +4,7 @@ static int descriptor = 0;
 
 //Funcion para montar el dipositivo virtual
 int bmount(const char *camino){
+    umask(0); //para quitar los permisos default que da linux, y podamos poner de verdad los permisos que queremos, por defecto es 22
     descriptor = open(camino, O_RDWR | O_CREAT, 0666); //Abrimos el fichero
     if(descriptor == FALLO){ 
         perror(RED "Error de mount"); 
