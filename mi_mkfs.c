@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "bloques.c"
+#include "bloques.h"
 
 int main(int argc, char **argv){
     unsigned char buffer[BLOCKSIZE];
