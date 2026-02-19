@@ -3,8 +3,6 @@
 
 struct superbloque SB;
 
-unsigned char buffer[BLOCKSIZE];
-
 int tamMB(unsigned int nbloques);
 int tamAI(unsigned int ninodos);
 int initSB(unsigned int nbloques, unsigned int ninodos);
@@ -31,11 +29,12 @@ int tamAI(unsigned int ninodos){
 
 //Funcion que inicializa los datos del superbloque
 int initSB(unsigned int nbloques, unsigned int ninodos){
+    unsigned char buffer[BLOCKSIZE];
 
     SB.posPrimerBloqueMB = posSB+tamSB;
-    SB.posUltimoBloqueMB = SB. posPrimerBloqueMB + tamMB(nbloques) -1;
+    SB.posUltimoBloqueMB = SB.posPrimerBloqueMB + tamMB(nbloques) -1;
     SB.posPrimerBloqueAI = SB.posUltimoBloqueMB + 1;    
-    SB.posUltimoBloqueAI = SB. posPrimerBloqueAI + tamAI(ninodos) -1;
+    SB.posUltimoBloqueAI = SB.posPrimerBloqueAI + tamAI(ninodos) -1;
     SB.posPrimerBloqueDatos = SB.posUltimoBloqueAI + 1;
     SB.posUltimoBloqueDatos = nbloques -1; 
     SB.posInodoRaiz = 0; 
@@ -45,7 +44,7 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
     SB.totBloques =  nbloques;  
     SB.totInodos =  ninodos; 
 
-    memset(buffer, 0 , BLOCKSIZE);
+    memset(buffer, 1 , BLOCKSIZE);
     int result = bwrite(0, buffer);
 
     return result;
@@ -54,7 +53,47 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
 //Funcion que inicializa el mapa de bits poniendo a 1 los bits que representan los metadatos
 int initMB(){
     unsigned char bufferMB[BLOCKSIZE];
-    unsigned int bloques_ocupados = tamSB + tamMB(SB.totBloques) + tamAI(SB.totInodos);
+
+    unsigned int bloques_metadatos = SB.posPrimerBloqueDatos; // el ultimo bloque de metadatos es posPrimerBloqueDatos -1, por tanto posPrimerBloqueDatos seria 
+                                                              // el numero de bloques de metadatos
+
+    unsigned int bloques_completos = bloques_metadatos / (8 * BLOCKSIZE);
+    unsigned int resto_bits = bloques_metadatos % (8 * BLOCKSIZE);
+
+    unsigned int posBloqueMB = SB.posPrimerBloqueMB;
+
+    // Bloques del MB completamente a 1
+    for(unsigned int i = 0; i < bloques_completos; i++){
+        memset(bufferMB, 255, BLOCKSIZE);
+        bwrite(posBloqueMB + i, bufferMB);
+    }
+
+    // Bloque parcial
+    if(resto_bits > 0){
+
+        memset(bufferMB, 0, BLOCKSIZE);
+
+        unsigned int bytes_completos = resto_bits / 8;
+        unsigned int bits_restantes = resto_bits % 8;
+
+        for(unsigned int i = 0; i < bytes_completos; i++){
+            bufferMB[i] = 255;
+        }
+
+        if(bits_restantes > 0){
+            bufferMB[bytes_completos] = 255 << (8 - bits_restantes);
+        }
+
+        bwrite(posBloqueMB + bloques_completos, bufferMB);
+    }
+
+    // Actualizar superbloque segun initMB
+    SB.cantBloquesLibres -= bloques_metadatos;
+
+    bwrite(posSB, &SB);
+
+    return 0;
+
    // int bloques_metadatos = tamSB + tamMB + tamAI;
    // escribir_paquetes_bytes;
    // escribir_escribir_bits_restantes;
