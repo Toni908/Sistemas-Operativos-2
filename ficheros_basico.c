@@ -1,6 +1,9 @@
 #include "ficheros_basico.h"
+#include "bloques.h"
 
 struct superbloque SB;
+
+unsigned char buffer[BLOCKSIZE];
 
 int tamMB(unsigned int nbloques);
 int tamAI(unsigned int ninodos);
@@ -29,17 +32,23 @@ int tamAI(unsigned int ninodos){
 //Funcion que inicializa los datos del superbloque
 int initSB(unsigned int nbloques, unsigned int ninodos){
 
-    SB.posInodoRaiz = 0;
-    SB.posPrimerInodoLibre = 0;
-    SB.cantBloquesLibres = nbloques;
-    SB.cantInodosLibres = ninodos;
-    SB.totBloques = nbloques;
-    SB.totInodos = ninodos;
-    SB.posUltimoBloqueAI = SB.posPrimerBloqueAI + tamAI(ninodos) -1;
-    SB.posPrimerBloqueDatos = SB.posUltimoBloqueAI +1;
-    SB.posUltimoBloqueDatos = nbloques - 1;
+    SB.posPrimerBloqueMB = posSB+tamSB;
+    SB.posUltimoBloqueMB = SB. posPrimerBloqueMB + tamMB(nbloques) -1;
+    SB.posPrimerBloqueAI = SB.posUltimoBloqueMB + 1;    
+    SB.posUltimoBloqueAI = SB. posPrimerBloqueAI + tamAI(ninodos) -1;
+    SB.posPrimerBloqueDatos = SB.posUltimoBloqueAI + 1;
+    SB.posUltimoBloqueDatos = nbloques -1; 
+    SB.posInodoRaiz = 0; 
+    SB.posPrimerInodoLibre = 0; // al reservar el inodo raiz valdrá 1
+    SB.cantBloquesLibres = nbloques; // al ejecutar initMB() restaremos los metadatos 
+    SB.cantInodosLibres = ninodos; // al reservar el inodo raiz restaremos 1    
+    SB.totBloques =  nbloques;  
+    SB.totInodos =  ninodos; 
 
-    //falta llamar a bwrite en la posicion 0 de la estrcutura del superbloque 
+    memset(buffer, 0 , BLOCKSIZE);
+    int result = bwrite(0, buffer);
+
+    return result;
 }
 
 //Funcion que inicializa el mapa de bits poniendo a 1 los bits que representan los metadatos
