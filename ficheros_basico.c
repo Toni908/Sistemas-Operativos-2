@@ -131,4 +131,5 @@ int initAI(){
             return FALLO;
         }
     }
+    return EXITO;
 }
