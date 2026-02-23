@@ -109,7 +109,7 @@ int initAI(){
     int contInodos = SB.posPrimerInodoLibre +1;
     for(int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++){
         //leer bloque de inodos i en el dispositivo virtual
-        for(int j = 0; j <=     BLOCKSIZE/INODOSIZE; j++){
+        for(int j = 0; j <= BLOCKSIZE/INODOSIZE; j++){
             inodos[j].tipo = 'l'; //libre
             if(contInodos < SB.totInodos){
                 inodos[j].punterosDirectos[0] = contInodos;
@@ -119,8 +119,6 @@ int initAI(){
             
             }
         }
-        
     }
-    //ESCRIBIR EL BLOQUE DE INODOS I EN EL DISPOSITIVO FINAL
-
+    //ESCRIBIR EL BLOQUE DE INODOS i EN EL DISPOSITIVO FINAL
 }

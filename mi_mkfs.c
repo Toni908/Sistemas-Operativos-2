@@ -9,5 +9,6 @@ int main(int argc, char **argv){
     for(int i = 0; i < atoi(argv[2]); i++){ //bucle for para escribir los bloques
         bwrite(i, buffer);
     }
+    //añadir funciones aqui 
     bumount();  //desmontamos el dispostivo virtual
 }
