@@ -6,7 +6,7 @@
 int main(int argc, char **argv){
 
     if(argc != 2){
-        perror(RED "Error"); 
+        fprintf(stderr, "Sintaxis: %s <nombre_dispositivo>\n", argv[0]);
         return FALLO;
     }
 
@@ -18,7 +18,7 @@ int main(int argc, char **argv){
 
     struct superbloque SB;
 
-    // Leer superbloque
+    // Leer superbloque (bloque 0)
     if(bread(posSB, &SB) == FALLO){
         perror(RED "Error"); 
         bumount();
@@ -49,11 +49,20 @@ int main(int argc, char **argv){
 
     while(posInodo != UINT_MAX){
 
-        if(leer_inodo(posInodo, &inodo) == FALLO){
-            perror("Error leyendo inodo");
+        // Leer inodo manualmente (por si no tienes leer_inodo implementado)
+        unsigned int inodosPorBloque = BLOCKSIZE / INODOSIZE;
+        unsigned int bloqueAI = SB.posPrimerBloqueAI + (posInodo / inodosPorBloque);
+        unsigned int desplazamiento = posInodo % inodosPorBloque;
+
+        struct inodo buffer[inodosPorBloque];
+
+        if(bread(bloqueAI, buffer) == FALLO){
+            perror(RED "Error"); 
             bumount();
             return FALLO;
         }
+
+        inodo = buffer[desplazamiento];
 
         printf("%u ", posInodo);
 
