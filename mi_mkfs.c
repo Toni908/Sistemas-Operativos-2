@@ -4,11 +4,24 @@
 
 int main(int argc, char **argv){
     unsigned char buffer[BLOCKSIZE];
-    bmount(argv[1]); //creamos el dispositivo virtual
-    memset(buffer, 0 , BLOCKSIZE); // creo que no hace falta que este fuera, ya que no reasignamos buffer en el for, hay que preguntar a adelaida
-    for(int i = 0; i < atoi(argv[2]); i++){ //bucle for para escribir los bloques
+    unsigned int nbloques = atoi(argv[2]);
+
+    if(bmount(argv[1]) == FALLO){ // Disco virtual
+        return FALLO;
+    }
+
+    memset(buffer, 0 , BLOCKSIZE); 
+    for(int i = 0; i < nbloques; i++){ //bucle for para escribir los bloques
         bwrite(i, buffer);
     }
-    //añadir funciones aqui 
+
+    unsigned int ninodos = nbloques / 4;   // Heuristica
+
+    initSB(nbloques, ninodos);
+    initMB();
+    initAI();
+
     bumount();  //desmontamos el dispostivo virtual
+
+    return EXITO;
 }
