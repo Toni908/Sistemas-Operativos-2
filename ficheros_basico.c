@@ -1,5 +1,6 @@
 #include "ficheros_basico.h"
 #include "bloques.h"
+#include <limits.h>
 
 struct superbloque SB;
 
@@ -105,20 +106,29 @@ int initMB(){
 //Funcion que inicializa la lista de inodos libres
 int initAI(){
     struct inodo inodos [BLOCKSIZE / INODOSIZE];
-    //...
+    if (bread(posSB, &SB) == -1) { //leemos el superbloque
+        perror("Error");
+        return FALLO;
+    }
     int contInodos = SB.posPrimerInodoLibre +1;
     for(int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++){
-        //leer bloque de inodos i en el dispositivo virtual
+         if (bread(i, inodos) == -1) { //leemos el bloque de inodos i del dispositivo virtual
+            perror("Error");
+            return FALLO;
+        }
         for(int j = 0; j <= BLOCKSIZE/INODOSIZE; j++){
             inodos[j].tipo = 'l'; //libre
             if(contInodos < SB.totInodos){
                 inodos[j].punterosDirectos[0] = contInodos;
                 contInodos ++;
             }else{
-               // inodos[j].punterosDirectos[0] = UINT_MAX;
-            
+               inodos[j].punterosDirectos[0] = UINT_MAX; 
+               break;
             }
         }
+        if (bwrite(i, inodos) == -1) { //escribimos el bloque en el dispositivo final
+            perror("Error escribiendo bloque de inodos");
+            return FALLO;
+        }
     }
-    //ESCRIBIR EL BLOQUE DE INODOS i EN EL DISPOSITIVO FINAL
 }
