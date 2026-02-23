@@ -47,28 +47,6 @@ int main(int argc, char **argv){
     unsigned int posInodo = SB.posPrimerInodoLibre;
     struct inodo inodo;
 
-    while(posInodo != UINT_MAX){
-
-        // Leer inodo manualmente (por si no tienes leer_inodo implementado)
-        unsigned int inodosPorBloque = BLOCKSIZE / INODOSIZE;
-        unsigned int bloqueAI = SB.posPrimerBloqueAI + (posInodo / inodosPorBloque);
-        unsigned int desplazamiento = posInodo % inodosPorBloque;
-
-        struct inodo buffer[inodosPorBloque];
-
-        if(bread(bloqueAI, buffer) == FALLO){
-            perror(RED "Error"); 
-            bumount();
-            return FALLO;
-        }
-
-        inodo = buffer[desplazamiento];
-
-        printf("%u ", posInodo);
-
-        posInodo = inodo.punterosDirectos[0];
-    }
-
     printf("-1\n");
 
     bumount();
