@@ -42,10 +42,11 @@ int main(int argc, char **argv){
     printf("\nsizeof struct superbloque: %lu\n", sizeof(struct superbloque));
     printf("sizeof struct inodo: %lu\n", sizeof(struct inodo));
 
-    printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
-
     unsigned int posInodo = SB.posPrimerInodoLibre;
     struct inodo inodo;
+    printf("Tamaño de Inodo (Bytes): %lu", sizeof(inodo));
+
+    printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
 
     printf("-1\n");
 

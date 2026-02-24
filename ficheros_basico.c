@@ -95,12 +95,6 @@ int initMB(){
 
     return 0;
 
-   // int bloques_metadatos = tamSB + tamMB + tamAI;
-   // escribir_paquetes_bytes;
-   // escribir_escribir_bits_restantes;
-   // escribir(bufferMB);
-   // SB.cantBloquesLibres -= bloques_metadatos;
-   // escribir(SB); 
 }
 
 //Funcion que inicializa la lista de inodos libres
