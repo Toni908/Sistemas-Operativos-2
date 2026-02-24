@@ -139,7 +139,7 @@ int initAI(){
             return FALLO;
         }
     }
-<<<<<<< HEAD
+    return EXITO;    
 }
 
 
@@ -171,7 +171,3 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     //PROGRAMAR
 }
 
-=======
-    return EXITO;
-}
->>>>>>> 66c6aea341948e05cffc99cd49857bee1f183503
