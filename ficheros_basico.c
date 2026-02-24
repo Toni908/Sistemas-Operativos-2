@@ -9,6 +9,14 @@ int tamAI(unsigned int ninodos);
 int initSB(unsigned int nbloques, unsigned int ninodos);
 int initMB(); 
 int initAI();
+int escribir_bit(unsigned int nbloque, unsigned int bit);
+char leer_bit(unsigned int nbloque);
+int reservar_bloque();
+int liberar_bloque(unsigned int nbloque);
+int escribir_inodo(unsigned int ninodo, struct inodo *inodo);
+int leer_inodo(unsigned int ninodo, struct inodo *inodo);
+int reservar_inodo(unsigned char tipo, unsigned char permisos);
+
 
 //Funcion que calcula el tamaño en bloques necesario para el mapa de bits
 int tamMB(unsigned int nbloques){
@@ -132,3 +140,33 @@ int initAI(){
         }
     }
 }
+
+
+int escribir_bit(unsigned int nbloque, unsigned int bit){
+    //PROGRAMAR
+}
+
+char leer_bit(unsigned int nbloque){
+    //PROGRAMAR
+}
+
+int reservar_bloque(){
+    //PROGRAMAR
+}
+
+int liberar_bloque(unsigned int nbloque){
+    //PROGRAMAR
+}
+
+int escribir_inodo(unsigned int ninodo, struct inodo *inodo){
+    //PROGRAMAR
+}
+
+int leer_inodo(unsigned int ninodo, struct inodo *inodo){
+    //PROGRAMAR
+}
+
+int reservar_inodo(unsigned char tipo, unsigned char permisos){
+    //PROGRAMAR
+}
+
