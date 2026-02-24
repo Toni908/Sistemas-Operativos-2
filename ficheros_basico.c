@@ -101,7 +101,7 @@ int initMB(){
 
     bwrite(posSB, &SB);
 
-    return 0;
+    return EXITO;
 
    // int bloques_metadatos = tamSB + tamMB + tamAI;
    // escribir_paquetes_bytes;
@@ -135,24 +135,51 @@ int initAI(){
             }
         }
         if (bwrite(i, inodos) == -1) { //escribimos el bloque en el dispositivo final
-            perror("Error escribiendo bloque de inodos");
+            perror("Error");
             return FALLO;
         }
     }
     return EXITO;    
 }
 
-
+//FALTA ACABARLO, CONTROL DE ERRORES Y RETURN
 int escribir_bit(unsigned int nbloque, unsigned int bit){
-    //PROGRAMAR
+    unsigned char bufferMB[BLOCKSIZE];
+    int posbyte = nbloque/8;                           //Dividimos entre 8 porque los bits se agrupan de 8 en 8, asi sabemos la posición del byte
+    int posbit = nbloque % 8;                          //Asi sabemos la posicion del bit dentro del byte
+    int nbloqueMB = posbyte/BLOCKSIZE;                 //Este es el numero de bloque detro del mapa de bits
+    int nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB; //Posición absoluta del dispositivo virtual en que se encuentra el bloque
+    bread(nbloqueabs,bufferMB);                      
+    posbyte = posbyte % BLOCKSIZE;
+    unsigned char mascara = 128;                       //Macara para poner el bit a 1
+    mascara >>= posbit;                                //Desplazamiento de bits a la derecha
+    //CREO QUE AQUI TENDREMOS QUE HACER ALGO PARA SELECCIONAR LA OPCION
+    bufferMB[posbyte] |= mascara;                      //Ponemos a 1 el bit (usar si se quiere poner un 1, reservar bloque)
+    bufferMB[posbyte] &= ~mascara;                     //Ponemos a 0 el bit (usar si se quiere poner un 0, liberar bloque)
+    bwrite(nbloqueabs, bufferMB);                      //Escribimos ese el resultado con ese bit cambiado
 }
 
+//FALTA TODO 
 char leer_bit(unsigned int nbloque){
-    //PROGRAMAR
+    unsigned char bufferMB[BLOCKSIZE];
+    int posbyte = nbloque/8;
+    int posbit = nbloque %8;
+    int nbloqueMB = posbyte/BLOCKSIZE;
+    int nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB;
+    bread(nbloqueabs,bufferMB);          //ns si esto sobra            
+    posbyte = posbyte % BLOCKSIZE;       //ns si esto sobra
+    unsigned char mascara = 128;
+    mascara >>= posbit;
+    mascara &= bufferMB[posbyte];
+    mascara >>= (7 - posbit); //desplazamiento de bits a la derecha
+
 }
 
+//FALTA TODO
 int reservar_bloque(){
-    //PROGRAMAR
+    unsigned char bufferMB[BLOCKSIZE];
+    unsigned char bufferAux[BLOCKSIZE];
+    memset(bufferAux, 255, BLOCKSIZE);
 }
 
 int liberar_bloque(unsigned int nbloque){
