@@ -178,14 +178,48 @@ char leer_bit(unsigned int nbloque){
 
 //FALTA TODO
 int reservar_bloque(){
-    //unsigned char bufferMB[BLOCKSIZE];
+    unsigned char bufferMB[BLOCKSIZE];
     unsigned char bufferAux[BLOCKSIZE];
     memset(bufferAux, 255, BLOCKSIZE);
-    return FALLO;
+    int nbloqueMB = 0;
+    if(SB.cantBloquesLibres != 0){
+        for(int i = SB.posPrimerBloqueMB; i < SB.posPrimerBloqueAI; i++){
+            bread(SB.posPrimerBloqueMB + nbloqueMB, bufferMB);
+            if(memcmp(bufferMB, bufferAux, 1024*8) != 0){
+                break;
+            }else{
+                nbloqueMB ++;
+            }
+        }
+        int posbyteB;
+        for(int i = 0; i < BLOCKSIZE; i++){
+           if(bufferMB[i] != 255){
+                posbyteB = i;
+                break;
+           }
+        }
+        unsigned char mascara = 128; // 10000000
+        int posbit = 0;
+        while (bufferMB[posbyteB] & mascara) { // operador AND para bits
+            bufferMB[posbyteB] <<= 1;          // desplazamiento de bits a la izquierda
+            posbit++;
+        }
+        int nbloque = (nbloqueMB * BLOCKSIZE  +  posbyteB) * 8 + posbit;
+        escribir_bit(nbloque, 1);        
+        SB.cantBloquesLibres --;
+
+        bwrite(posSB, &SB); // guardar SB
+
+        return nbloque;
+    }else{
+        printf(RED "Error, no quedan bloques libres");
+        return FALLO;
+    }
 }
 
 int liberar_bloque(unsigned int nbloque){
     //PROGRAMAR
+    SB.cantBloquesLibres ++;
     return FALLO;
 }
 
