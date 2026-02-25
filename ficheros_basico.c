@@ -314,7 +314,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
             inodo.punterosIndirectos[i] = 0;
         }
         escribir_inodo(posInodoReservado, &inodo);
-        SB.cantInodosLibres --;
+        SB.cantInodosLibres--;
         bwrite(posSB, &SB); // guardar SB
         return posInodoReservado;
     }else{
