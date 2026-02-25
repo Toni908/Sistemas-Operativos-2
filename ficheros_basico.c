@@ -251,17 +251,73 @@ int liberar_bloque(unsigned int nbloque){
 }
 
 int escribir_inodo(unsigned int ninodo, struct inodo *inodo){
-    //PROGRAMAR
-    return FALLO;
+    struct inodo inodos[BLOCKSIZE/INODOSIZE];
+    struct superbloque SB;
+    if (bread(posSB, &SB) == -1) { //leemos el superbloque
+        perror(RED "Error"); // lo quitamos?
+        return FALLO;
+    }
+    int nbloqueAI = ninodo * INODOSIZE / BLOCKSIZE;
+    int nbloqueabs = nbloqueAI + SB.posPrimerBloqueAI;
+    bread(nbloqueabs, inodos);
+    int posinodo = ninodo % (BLOCKSIZE/INODOSIZE);
+    inodos[posinodo] = *inodo;
+    bwrite(nbloqueabs, inodos);
+    return EXITO;
 }
 
 int leer_inodo(unsigned int ninodo, struct inodo *inodo){
-    //PROGRAMAR
-    return FALLO;
+    struct inodo inodos[BLOCKSIZE/INODOSIZE];
+    struct superbloque SB;
+    if (bread(posSB, &SB) == -1) { //leemos el superbloque
+        perror(RED "Error"); // lo quitamos?
+        return FALLO;
+    }
+    int nbloqueAI = ninodo * INODOSIZE / BLOCKSIZE;
+    int nbloqueabs = nbloqueAI + SB.posPrimerBloqueAI;
+    bread(nbloqueabs, inodos);
+    int posinodo = ninodo % (BLOCKSIZE/INODOSIZE);
+    *inodo = inodos[posinodo];
+    return EXITO;
 }
 
 int reservar_inodo(unsigned char tipo, unsigned char permisos){
-    //PROGRAMAR
-    return FALLO;
+    struct superbloque SB;
+    if (bread(posSB, &SB) == -1) { //leemos el superbloque
+        perror(RED "Error"); // lo quitamos?
+        return FALLO;
+    }
+    
+    if(SB.cantInodosLibres != 0){
+        struct inodo inodo;
+        struct inodo inodos[BLOCKSIZE/INODOSIZE];
+        int nbloqueAI = SB.posPrimerInodoLibre * INODOSIZE / BLOCKSIZE;
+        int nbloqueabs = nbloqueAI + SB.posPrimerBloqueAI;
+        bread(nbloqueabs, inodos);
+        int posinodo = SB.posPrimerInodoLibre % (BLOCKSIZE/INODOSIZE);
+        struct inodo aux = inodos[posinodo];
+        int posInodoReservado = SB.posPrimerInodoLibre;
+        SB.posPrimerInodoLibre = aux.punterosDirectos[0];
+        inodo.tipo = tipo;
+        inodo.permisos = permisos;
+        inodo.nlinks = 1;
+        inodo.tamEnBytesLog = 0;
+        inodo.atime = time(NULL);
+        inodo.mtime = time(NULL);
+        inodo.ctime = time(NULL);
+        inodo.btime = time(NULL);
+        inodo.numBloquesOcupados = 0;
+        for(int i = 0; i < sizeof(inodo.punterosDirectos); i++){
+            inodo.punterosDirectos[i] = NULL;
+        }
+        for(int i = 0; i < sizeof(inodo.punterosIndirectos); i++){
+            inodo.punterosIndirectos[i] = NULL;
+        }
+        escribir_inodo(posInodoReservado, &inodo);
+        SB.cantInodosLibres --;
+        return posInodoReservado;
+    }else{
+        printf(RED "Error, no hay indodos libres" RESET);
+        return FALLO;
+    }
 }
-
