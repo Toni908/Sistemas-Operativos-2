@@ -157,21 +157,23 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     return FALLO;
 }
 
-//FALTA TODO 
 char leer_bit(unsigned int nbloque){
     unsigned char bufferMB[BLOCKSIZE];
     int posbyte = nbloque/8;
     int posbit = nbloque %8;
     int nbloqueMB = posbyte/BLOCKSIZE;
     int nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB;
-    bread(nbloqueabs,bufferMB);          //ns si esto sobra            
-    posbyte = posbyte % BLOCKSIZE;       //ns si esto sobra
+    bread(nbloqueabs,bufferMB);                    
+    posbyte = posbyte % BLOCKSIZE;       
     unsigned char mascara = 128;
     mascara >>= posbit;
     mascara &= bufferMB[posbyte];
     mascara >>= (7 - posbit); //desplazamiento de bits a la derecha
-
-    return FALLO;
+    if(mascara != 0 && mascara != 1){
+        printf("Error, el contenido de la mascara es erroneo");
+        return FALLO;
+    }
+    return mascara;
 }
 
 //FALTA TODO
