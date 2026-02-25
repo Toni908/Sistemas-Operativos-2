@@ -108,13 +108,13 @@ int initMB(){
 int initAI(){
     struct inodo inodos [BLOCKSIZE / INODOSIZE];
     if (bread(posSB, &SB) == -1) { //leemos el superbloque
-        perror("Error");
+        perror(RED "Error");
         return FALLO;
     }
     int contInodos = SB.posPrimerInodoLibre +1;
     for(int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++){
          if (bread(i, inodos) == -1) { //leemos el bloque de inodos i del dispositivo virtual
-            perror("Error");
+            perror(RED "Error");
             return FALLO;
         }
         for(int j = 0; j <= BLOCKSIZE/INODOSIZE; j++){
@@ -128,7 +128,7 @@ int initAI(){
             }
         }
         if (bwrite(i, inodos) == -1) { //escribimos el bloque en el dispositivo final
-            perror("Error");
+            perror(RED "Error");
             return FALLO;
         }
     }
@@ -146,11 +146,14 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     posbyte = posbyte % BLOCKSIZE;
     unsigned char mascara = 128;                       //Macara para poner el bit a 1
     mascara >>= posbit;                                //Desplazamiento de bits a la derecha
-    //CREO QUE AQUI TENDREMOS QUE HACER ALGO PARA SELECCIONAR LA OPCION
-    bufferMB[posbyte] |= mascara;                      //Ponemos a 1 el bit (usar si se quiere poner un 1, reservar bloque)
-    bufferMB[posbyte] &= ~mascara;                     //Ponemos a 0 el bit (usar si se quiere poner un 0, liberar bloque)
+    if(bit == 0){
+        bufferMB[posbyte] &= ~mascara;                 //Ponemos a 0 el bit (usar si se quiere poner un 0, liberar bloque)
+    }else if(bit == 1){
+        bufferMB[posbyte] |= mascara;                  //Ponemos a 1 el bit (usar si se quiere poner un 1, reservar bloque)
+    }else{
+        printf(RED "Error, el bit tiene que estar a 1 para reservar un bloque o a 0 para liberar un bloque" RESET);
+    }
     bwrite(nbloqueabs, bufferMB);                      //Escribimos ese el resultado con ese bit cambiado
-
     return FALLO;
 }
 
