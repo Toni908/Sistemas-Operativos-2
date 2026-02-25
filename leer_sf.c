@@ -47,9 +47,7 @@ int main(int argc, char **argv){
     unsigned int inodosPorBloque = BLOCKSIZE / INODOSIZE;
     struct inodo inodos[inodosPorBloque];
     int posInodo;
-
-    int num = 0;
-
+    
     printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
 
     
