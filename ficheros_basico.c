@@ -1,8 +1,6 @@
 #include "ficheros_basico.h"
 #include "bloques.h"
 
-struct superbloque SB;
-
 int tamMB(unsigned int nbloques);
 int tamAI(unsigned int ninodos);
 int initSB(unsigned int nbloques, unsigned int ninodos);
@@ -37,7 +35,7 @@ int tamAI(unsigned int ninodos){
 
 //Funcion que inicializa los datos del superbloque
 int initSB(unsigned int nbloques, unsigned int ninodos){
-    unsigned char buffer[BLOCKSIZE];
+    struct superbloque SB;
 
     SB.posPrimerBloqueMB = posSB+tamSB;
     SB.posUltimoBloqueMB = SB.posPrimerBloqueMB + tamMB(nbloques) -1;
@@ -52,8 +50,7 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
     SB.totBloques =  nbloques;  
     SB.totInodos =  ninodos; 
 
-    memset(buffer, 1 , BLOCKSIZE);
-    int result = bwrite(0, buffer);
+    int result = bwrite(0, &SB);
 
     return result;
 }
@@ -61,6 +58,11 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
 //Funcion que inicializa el mapa de bits poniendo a 1 los bits que representan los metadatos
 int initMB(){
     unsigned char bufferMB[BLOCKSIZE];
+    struct superbloque SB;
+    if (bread(posSB, &SB) == -1) { //leemos el superbloque
+        perror(RED "Error"); // lo quitamos?
+        return FALLO;
+    }
 
     unsigned int bloques_metadatos = SB.posPrimerBloqueDatos; // el ultimo bloque de metadatos es posPrimerBloqueDatos -1, por tanto posPrimerBloqueDatos seria 
                                                               // el numero de bloques de metadatos
@@ -106,6 +108,7 @@ int initMB(){
 
 //Funcion que inicializa la lista de inodos libres
 int initAI(){
+    struct superbloque SB;
     struct inodo inodos [BLOCKSIZE / INODOSIZE];
     if (bread(posSB, &SB) == -1) { //leemos el superbloque
         perror(RED "Error"); // lo quitamos?
@@ -137,6 +140,12 @@ int initAI(){
 
 //FALTA ACABARLO, CONTROL DE ERRORES Y RETURN
 int escribir_bit(unsigned int nbloque, unsigned int bit){
+    struct superbloque SB;
+    if (bread(posSB, &SB) == -1) { //leemos el superbloque
+        perror(RED "Error"); // lo quitamos?
+        return FALLO;
+    }
+
     unsigned char bufferMB[BLOCKSIZE];
     int posbyte = nbloque/8;                           //Dividimos entre 8 porque los bits se agrupan de 8 en 8, asi sabemos la posición del byte
     int posbit = nbloque % 8;                          //Asi sabemos la posicion del bit dentro del byte
@@ -158,6 +167,12 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
 }
 
 char leer_bit(unsigned int nbloque){
+    struct superbloque SB;
+    if (bread(posSB, &SB) == -1) { //leemos el superbloque
+        perror(RED "Error"); // lo quitamos?
+        return FALLO;
+    }
+
     unsigned char bufferMB[BLOCKSIZE];
     int posbyte = nbloque/8;
     int posbit = nbloque %8;
@@ -178,6 +193,12 @@ char leer_bit(unsigned int nbloque){
 
 //FALTA TODO
 int reservar_bloque(){
+    struct superbloque SB;
+    if (bread(posSB, &SB) == -1) { //leemos el superbloque
+        perror(RED "Error"); // lo quitamos?
+        return FALLO;
+    }
+
     unsigned char bufferMB[BLOCKSIZE];
     unsigned char bufferAux[BLOCKSIZE];
     memset(bufferAux, 255, BLOCKSIZE);
@@ -185,7 +206,7 @@ int reservar_bloque(){
     if(SB.cantBloquesLibres != 0){
         for(int i = SB.posPrimerBloqueMB; i < SB.posPrimerBloqueAI; i++){
             bread(SB.posPrimerBloqueMB + nbloqueMB, bufferMB);
-            if(memcmp(bufferMB, bufferAux, 1024*8) != 0){
+            if(memcmp(bufferMB, bufferAux, BLOCKSIZE) != 0){
                 break;
             }else{
                 nbloqueMB ++;
@@ -219,7 +240,6 @@ int reservar_bloque(){
 
 int liberar_bloque(unsigned int nbloque){
     //PROGRAMAR
-    SB.cantBloquesLibres ++;
     return FALLO;
 }
 
