@@ -108,13 +108,13 @@ int initMB(){
 int initAI(){
     struct inodo inodos [BLOCKSIZE / INODOSIZE];
     if (bread(posSB, &SB) == -1) { //leemos el superbloque
-        perror(RED "Error");
+        perror(RED "Error"); // lo quitamos?
         return FALLO;
     }
     int contInodos = SB.posPrimerInodoLibre +1;
     for(int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++){
          if (bread(i, inodos) == -1) { //leemos el bloque de inodos i del dispositivo virtual
-            perror(RED "Error");
+            perror(RED "Error"); // lo quitamos?
             return FALLO;
         }
         for(int j = 0; j <= BLOCKSIZE/INODOSIZE; j++){
@@ -128,7 +128,7 @@ int initAI(){
             }
         }
         if (bwrite(i, inodos) == -1) { //escribimos el bloque en el dispositivo final
-            perror(RED "Error");
+            perror(RED "Error"); // lo quitamos?
             return FALLO;
         }
     }
