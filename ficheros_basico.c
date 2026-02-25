@@ -151,6 +151,8 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     bufferMB[posbyte] |= mascara;                      //Ponemos a 1 el bit (usar si se quiere poner un 1, reservar bloque)
     bufferMB[posbyte] &= ~mascara;                     //Ponemos a 0 el bit (usar si se quiere poner un 0, liberar bloque)
     bwrite(nbloqueabs, bufferMB);                      //Escribimos ese el resultado con ese bit cambiado
+
+    return FALLO;
 }
 
 //FALTA TODO 
@@ -167,28 +169,34 @@ char leer_bit(unsigned int nbloque){
     mascara &= bufferMB[posbyte];
     mascara >>= (7 - posbit); //desplazamiento de bits a la derecha
 
+    return FALLO;
 }
 
 //FALTA TODO
 int reservar_bloque(){
-    unsigned char bufferMB[BLOCKSIZE];
+    //unsigned char bufferMB[BLOCKSIZE];
     unsigned char bufferAux[BLOCKSIZE];
     memset(bufferAux, 255, BLOCKSIZE);
+    return FALLO;
 }
 
 int liberar_bloque(unsigned int nbloque){
     //PROGRAMAR
+    return FALLO;
 }
 
 int escribir_inodo(unsigned int ninodo, struct inodo *inodo){
     //PROGRAMAR
+    return FALLO;
 }
 
 int leer_inodo(unsigned int ninodo, struct inodo *inodo){
     //PROGRAMAR
+    return FALLO;
 }
 
 int reservar_inodo(unsigned char tipo, unsigned char permisos){
     //PROGRAMAR
+    return FALLO;
 }
 

@@ -42,11 +42,37 @@ int main(int argc, char **argv){
     printf("\nsizeof struct superbloque: %lu\n", sizeof(struct superbloque));
     printf("sizeof struct inodo: %lu\n", sizeof(struct inodo));
 
-    unsigned int posInodo = SB.posPrimerInodoLibre;
-    struct inodo inodo;
-    printf("Tamaño de Inodo (Bytes): %lu", sizeof(inodo));
+    struct inodo inodoSize;
+    printf("Tamaño de Inodo (Bytes): %lu", sizeof(inodoSize));
+
+    // Print y lectura de los inodos
+
+    unsigned int inodosPorBloque = BLOCKSIZE / INODOSIZE;
+    struct inodo inodos[inodosPorBloque];
+    int posInodo = 0;
 
     printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
+
+    while (posInodo != UINT_MAX) {
+
+        // Calcular bloque del AI donde está el inodo
+        unsigned int nbloque = SB.posPrimerBloqueAI + (posInodo / inodosPorBloque);
+
+        // Leer bloque completo de inodos
+        if (bread(nbloque, inodos) == FALLO) {
+            perror("Error al leer bloque del AI");
+            bumount();
+            return FALLO;
+        }
+
+        // Printearlos
+        for(int j = 0; j <= inodosPorBloque; j++){
+            if(posInodo != UINT_MAX){
+                printf("%u, ",inodos[j].punterosDirectos[0]);
+                posInodo = inodos[j].punterosDirectos[0];
+            }
+        }
+    }
 
     printf("-1\n");
 
