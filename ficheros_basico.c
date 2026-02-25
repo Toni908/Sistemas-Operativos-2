@@ -239,8 +239,15 @@ int reservar_bloque(){
 }
 
 int liberar_bloque(unsigned int nbloque){
-    //PROGRAMAR
-    return FALLO;
+    struct superbloque SB;
+    if (bread(posSB, &SB) == -1) { //leemos el superbloque
+        perror(RED "Error"); // lo quitamos?
+        return FALLO;
+    }
+    escribir_bit(nbloque, 0);
+    SB.cantBloquesLibres ++;
+    bwrite(posSB, &SB); // guardar SB
+    return nbloque;  
 }
 
 int escribir_inodo(unsigned int ninodo, struct inodo *inodo){
