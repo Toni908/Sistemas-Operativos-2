@@ -308,10 +308,10 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
         inodo.btime = time(NULL);
         inodo.numBloquesOcupados = 0;
         for(int i = 0; i < sizeof(inodo.punterosDirectos); i++){
-            inodo.punterosDirectos[i] = NULL;
+            inodo.punterosDirectos[i] = 0;
         }
         for(int i = 0; i < sizeof(inodo.punterosIndirectos); i++){
-            inodo.punterosIndirectos[i] = NULL;
+            inodo.punterosIndirectos[i] = 0;
         }
         escribir_inodo(posInodoReservado, &inodo);
         SB.cantInodosLibres --;
