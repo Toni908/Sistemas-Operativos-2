@@ -1,6 +1,5 @@
 #include "ficheros_basico.h"
 #include "bloques.h"
-#include <limits.h>
 
 struct superbloque SB;
 
