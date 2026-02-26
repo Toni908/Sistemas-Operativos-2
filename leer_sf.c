@@ -3,6 +3,9 @@
 #include <limits.h>
 #include "ficheros_basico.h"
 
+#define NIVEL2 1
+#define NIVEL3 1
+
 int main(int argc, char **argv){
 
     if(argc != 2){
