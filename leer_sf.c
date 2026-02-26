@@ -6,28 +6,9 @@
 #define NIVEL2 1
 #define NIVEL3 1
 
-int main(int argc, char **argv){
+struct superbloque SB;
 
-    if(argc != 2){
-        fprintf(stderr, "Sintaxis: %s <nombre_dispositivo>\n", argv[0]);
-        return FALLO;
-    }
-
-    // Montar dispositivo
-    if(bmount(argv[1]) == FALLO){
-        perror(RED "Error"); 
-        return FALLO;
-    }
-
-    struct superbloque SB;
-
-    // Leer superbloque (bloque 0)
-    if(bread(posSB, &SB) == FALLO){
-        perror(RED "Error"); 
-        bumount();
-        return FALLO;
-    }
-
+int leer_superbloque(){
     printf("DATOS DEL SUPERBLOQUE\n");
     printf("posPrimerBloqueMB = %u\n", SB.posPrimerBloqueMB);
     printf("posUltimoBloqueMB = %u\n", SB.posUltimoBloqueMB);
@@ -45,19 +26,19 @@ int main(int argc, char **argv){
     printf("\nsizeof struct superbloque: %lu\n", sizeof(struct superbloque));
     printf("sizeof struct inodo: " CYAN "%lu\n" RESET, sizeof(struct inodo));
 
-    // Print y lectura de los inodos
+    return EXITO;
+}
 
+int print_inodos(){
     unsigned int inodosPorBloque = BLOCKSIZE / INODOSIZE;
     struct inodo inodos[inodosPorBloque];
     int posInodo;
     
     printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
 
-    
     for (int nbloque = SB.posPrimerBloqueAI; nbloque < SB.posUltimoBloqueAI ; nbloque++){
         // Leer bloque completo de inodos
         if (bread(nbloque, inodos) == FALLO) {
-            perror(RED "Error");
             bumount();
             return FALLO;
         }
@@ -74,6 +55,35 @@ int main(int argc, char **argv){
     }
 
     printf("-1\n");
+    return EXITO;
+}
+
+int main(int argc, char **argv){
+
+    if(argc != 2){
+        fprintf(stderr, "Sintaxis: %s <nombre_dispositivo>\n", argv[0]);
+        return FALLO;
+    }
+
+    // Montar dispositivo
+    if(bmount(argv[1]) == FALLO) return FALLO;
+
+    // Leer superbloque (bloque 0)
+    if(bread(posSB, &SB) == FALLO){
+        bumount();
+        return FALLO;
+    }
+
+    #if NIVEL2 || NIVEL3
+        leer_superbloque();
+    #endif
+
+    // Print y lectura de los inodos
+
+    #if NIVEL2
+        print_inodos();
+    #endif
+
 
     bumount();
     return EXITO;
