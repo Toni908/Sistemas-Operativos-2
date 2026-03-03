@@ -16,7 +16,9 @@ int liberar_bloque(unsigned int nbloque);
 int escribir_inodo(unsigned int ninodo, struct inodo *inodo);
 int leer_inodo(unsigned int ninodo, struct inodo *inodo);
 int reservar_inodo(unsigned char tipo, unsigned char permisos);
-
+int obtener_nRangoBL (struct inodo *inodo,unsigned int nblogico, unsigned int *ptr);
+int obtener_indice (unsigned int nblogico, int nivel_punteros);
+int traducir_bloque_inodo(unsigned int inodo, unsigned int nblogico, unsigned char reservar);
 
 //Funcion que calcula el tamaño en bloques necesario para el mapa de bits
 int tamMB(unsigned int nbloques){
@@ -178,7 +180,6 @@ char leer_bit(unsigned int nbloque){
     return mascara;
 }
 
-//FALTA TODO
 int reservar_bloque(){
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO) return FALLO;
@@ -303,5 +304,101 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     }else{
         printf(RED "Error, no hay indodos libres" RESET);
         return FALLO;
+    }
+}
+
+//Devuelve el rango de punteros en el que me encuentro
+int obtener_nRangoBL (struct inodo *inodo,unsigned int nblogico, unsigned int *ptr){
+    if(nblogico < DIRECTOS){ //Si es menor a 12
+        *ptr = inodo -> punterosDirectos[nblogico];
+        return 0;
+    }else if(nblogico < INDIRECTOS0){ //Si es menor a 268
+        *ptr = inodo -> punterosIndirectos[0];
+        return 1;
+    }else if(nblogico < INDIRECTOS1){ //Si es menor a 65.804
+        *ptr = inodo -> punterosIndirectos[1];
+        return 2;
+    }else if(nblogico < INDIRECTOS2){ //Si es menor a 16.843.020 
+        *ptr = inodo -> punterosIndirectos[2];
+        return 3;
+    }else{
+        *ptr = 0;
+        printf(RED"Bloque lógico fuera de rango"RESET);
+        return FALLO;
+    }
+}
+
+int obtener_indice (unsigned int nblogico, int nivel_punteros){
+    if(nblogico < DIRECTOS){
+        return nblogico;
+    }else if(nblogico < INDIRECTOS0){
+        return nblogico - DIRECTOS;
+    }else if(nblogico < INDIRECTOS1){
+        if(nivel_punteros == 2){
+            return (nblogico - INDIRECTOS0) / NPUNTEROS;
+        }else if(nivel_punteros == 1){
+            return (nblogico - INDIRECTOS0) % NPUNTEROS;
+        }
+    }else if(nblogico < INDIRECTOS2){
+        if(nivel_punteros == 3){
+            return (nblogico - INDIRECTOS1) / (NPUNTEROS * NPUNTEROS);
+        }else if(nivel_punteros == 2){
+            return ((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) / NPUNTEROS; 
+        }else if(nivel_punteros == 1){
+            return ((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) % NPUNTEROS; 
+        }
+    }
+}
+
+//Dado un bloque logico nos devuelve donde esta a nivel físico
+int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned char reservar){
+    struct inodo inodo;
+    unsigned int ptr = 0;
+    unsigned int ptr_ant = 0;
+    unsigned int salvar_inodo = 0;
+    int indice = 0;
+    unsigned int buffer[NPUNTEROS];
+    leer_inodo(ninodo, &inodo);
+    int nRangoBL = obtener_nRangoBL(&inodo, nblogico, &ptr);
+    int nivel_punteros = nRangoBL;
+    while(nivel_punteros > 0){
+        if(ptr == 0){
+            if(reservar == 0){
+                return FALLO;
+            }
+            ptr = reservar_bloque();
+            inodo.numBloquesOcupados++;
+            inodo.ctime = time(NULL);
+            salvar_inodo = 1;
+            if(nivel_punteros == nRangoBL){
+                inodo.punterosIndirectos[nRangoBL -1] = ptr;
+            }else{
+                buffer[indice] = ptr;
+                bwrite(ptr_ant, buffer);
+            }
+            memset(buffer, 0, BLOCKSIZE);
+        }else{
+            bread(ptr, buffer);
+        }
+        indice = obtener_indice(nblogico, nivel_punteros);
+        ptr_ant = ptr;
+        ptr = buffer[indice];
+        nivel_punteros--;
+    }
+    if(ptr == 0){
+        if(reservar == 0){
+            return FALLO;
+        }else{
+            ptr = reservar_bloque();
+            inodo.numBloquesOcupados++;
+            inodo.ctime = time(NULL);
+            salvar_inodo = 1;
+            if(nRangoBL == 0){
+                inodo.punterosDirectos[nblogico] = ptr;
+            }else{
+                buffer[indice] = ptr;
+                bwrite(ptr_ant, buffer);
+            }
+        }
     }
 }

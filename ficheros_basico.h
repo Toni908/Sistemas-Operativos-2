@@ -5,6 +5,11 @@
 #define posSB 0 // el superbloque se escribe en el primer bloque de nuestro FS
 #define tamSB 1 // tamaño del superbloque
 #define INODOSIZE 128 // tamaño en bytes de un inodo
+#define NPUNTEROS (BLOCKSIZE / sizeof(unsigned int)) //256 punteros por bloque de 1.024 bytes
+#define DIRECTOS 12
+#define INDIRECTOS0 (NPUNTEROS + DIRECTOS)  // 268 BLs
+#define INDIRECTOS1 (NPUNTEROS * NPUNTEROS + INDIRECTOS0)  // 65.804 BLs
+#define INDIRECTOS2 (NPUNTEROS * NPUNTEROS * NPUNTEROS + INDIRECTOS1) // 16.843.020 BLs
 
 int tamMB(unsigned int nbloques);
 int tamAI(unsigned int ninodos);
