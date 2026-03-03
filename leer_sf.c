@@ -18,13 +18,13 @@ int leer_superbloque(){
     printf("posUltimoBloqueDatos = %u\n", SB.posUltimoBloqueDatos);
     printf("posInodoRaiz = %u\n", SB.posInodoRaiz);
     printf("posPrimerInodoLibre = %u\n", SB.posPrimerInodoLibre);
-    printf(CYAN "cantBloquesLibres = %u\n" RESET, SB.cantBloquesLibres );
+    printf("cantBloquesLibres = %u\n" , SB.cantBloquesLibres );
     printf("cantInodosLibres = %u\n", SB.cantInodosLibres);
     printf("totBloques = %u\n", SB.totBloques);
     printf("totInodos = %u\n", SB.totInodos);
 
     printf("\nsizeof struct superbloque: %lu\n", sizeof(struct superbloque));
-    printf("sizeof struct inodo: " CYAN "%lu\n" RESET, sizeof(struct inodo));
+    printf("sizeof struct inodo: %lu\n", sizeof(struct inodo));
 
     return EXITO;
 }
