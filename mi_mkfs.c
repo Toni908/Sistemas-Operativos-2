@@ -4,6 +4,7 @@
 
 #define NIVEL2 0
 #define NIVEL3 1
+#define NIVEL4 0
 
 int main(int argc, char **argv){
     unsigned char buffer[BLOCKSIZE];

@@ -1,9 +1,6 @@
 #include "ficheros_basico.h"
 #include "bloques.h"
 
-#define NIVEL2 1
-#define NIVEL3 1
-
 //Funcion que calcula el tamaño en bloques necesario para el mapa de bits
 int tamMB(unsigned int nbloques){
     int mb = (nbloques/8)/BLOCKSIZE; //calculamos el tamño del mapa de bits
@@ -331,6 +328,8 @@ int obtener_indice (unsigned int nblogico, int nivel_punteros){
             return ((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) % NPUNTEROS; 
         }
     }
+
+    return FALLO; // hay que mirar que devuelve y como
 }
 
 //Dado un bloque logico nos devuelve donde esta a nivel físico
@@ -339,6 +338,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
     unsigned int ptr = 0;
     unsigned int ptr_ant = 0;
     unsigned int salvar_inodo = 0;
+    printf("%u", salvar_inodo); // para que no de warning
     int indice = 0;
     unsigned int buffer[NPUNTEROS];
     leer_inodo(ninodo, &inodo);
@@ -384,4 +384,6 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
             }
         }
     }
+
+    return FALLO; // hay que mirar que devuelve y como
 }
