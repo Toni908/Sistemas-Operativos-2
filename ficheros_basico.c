@@ -4,22 +4,6 @@
 #define NIVEL2 1
 #define NIVEL3 1
 
-int tamMB(unsigned int nbloques);
-int tamAI(unsigned int ninodos);
-int initSB(unsigned int nbloques, unsigned int ninodos);
-int initMB(); 
-int initAI();
-int escribir_bit(unsigned int nbloque, unsigned int bit);
-char leer_bit(unsigned int nbloque);
-int reservar_bloque();
-int liberar_bloque(unsigned int nbloque);
-int escribir_inodo(unsigned int ninodo, struct inodo *inodo);
-int leer_inodo(unsigned int ninodo, struct inodo *inodo);
-int reservar_inodo(unsigned char tipo, unsigned char permisos);
-int obtener_nRangoBL (struct inodo *inodo,unsigned int nblogico, unsigned int *ptr);
-int obtener_indice (unsigned int nblogico, int nivel_punteros);
-int traducir_bloque_inodo(unsigned int inodo, unsigned int nblogico, unsigned char reservar);
-
 //Funcion que calcula el tamaño en bloques necesario para el mapa de bits
 int tamMB(unsigned int nbloques){
     int mb = (nbloques/8)/BLOCKSIZE; //calculamos el tamño del mapa de bits
@@ -132,7 +116,6 @@ int initAI(){
     return EXITO;    
 }
 
-//FALTA ACABARLO, CONTROL DE ERRORES Y RETURN
 int escribir_bit(unsigned int nbloque, unsigned int bit){
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO) return FALLO;
@@ -154,7 +137,7 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
         printf(RED "Error, el bit tiene que estar a 1 para reservar un bloque o a 0 para liberar un bloque" RESET);
     }
     if(bwrite(nbloqueabs, bufferMB) == FALLO) return FALLO;                      //Escribimos ese el resultado con ese bit cambiado
-    return FALLO;
+    return EXITO;
 }
 
 char leer_bit(unsigned int nbloque){

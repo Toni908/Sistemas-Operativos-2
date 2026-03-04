@@ -2,6 +2,9 @@
 #include "bloques.h"
 #include "ficheros_basico.h"
 
+#define NIVEL2 0
+#define NIVEL3 1
+
 int main(int argc, char **argv){
     unsigned char buffer[BLOCKSIZE];
     unsigned int nbloques = atoi(argv[2]);
@@ -20,6 +23,10 @@ int main(int argc, char **argv){
     initSB(nbloques, ninodos);
     initMB();
     initAI();
+
+    #if NIVEL3
+        reservar_inodo('d', 7);
+    #endif
 
     bumount();  //desmontamos el dispostivo virtual
 
