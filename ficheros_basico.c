@@ -1,8 +1,11 @@
 #include "ficheros_basico.h"
 #include "bloques.h"
 
-#define NIVEL2 1
+#define NIVEL2 0
 #define NIVEL3 1
+#define NIVEL4 0
+
+#define DEBUG 1
 
 //Funcion que calcula el tamaño en bloques necesario para el mapa de bits
 int tamMB(unsigned int nbloques){
@@ -121,12 +124,13 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     if (bread(posSB, &SB) == FALLO) return FALLO;
 
     unsigned char bufferMB[BLOCKSIZE];
-    int posbyte = nbloque/8;                           //Dividimos entre 8 porque los bits se agrupan de 8 en 8, asi sabemos la posición del byte
+    int posbyteMB = nbloque/8;                           //Dividimos entre 8 porque los bits se agrupan de 8 en 8, asi sabemos la posición del byte
     int posbit = nbloque % 8;                          //Asi sabemos la posicion del bit dentro del byte
-    int nbloqueMB = posbyte/BLOCKSIZE;                 //Este es el numero de bloque detro del mapa de bits
+    int nbloqueMB = posbyteMB/BLOCKSIZE;                 //Este es el numero de bloque detro del mapa de bits
     int nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB; //Posición absoluta del dispositivo virtual en que se encuentra el bloque
-    bread(nbloqueabs,bufferMB);                      
-    posbyte = posbyte % BLOCKSIZE;
+    
+    if(bread(nbloqueabs,bufferMB) == FALLO) return FALLO;                      
+    int posbyte = posbyteMB % BLOCKSIZE;
     unsigned char mascara = 128;                       //Macara para poner el bit a 1
     mascara >>= posbit;                                //Desplazamiento de bits a la derecha
     if(bit == 0){
@@ -137,6 +141,7 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
         printf(RED "Error, el bit tiene que estar a 1 para reservar un bloque o a 0 para liberar un bloque" RESET);
     }
     if(bwrite(nbloqueabs, bufferMB) == FALLO) return FALLO;                      //Escribimos ese el resultado con ese bit cambiado
+    
     return EXITO;
 }
 
@@ -145,12 +150,13 @@ char leer_bit(unsigned int nbloque){
     if (bread(posSB, &SB) == FALLO) return FALLO;
 
     unsigned char bufferMB[BLOCKSIZE];
-    int posbyte = nbloque/8;
+    int posbyteMB = nbloque/8;
     int posbit = nbloque %8;
-    int nbloqueMB = posbyte/BLOCKSIZE;
+    int nbloqueMB = posbyteMB/BLOCKSIZE;
     int nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB;
+    
     if(bread(nbloqueabs,bufferMB) == FALLO) return FALLO;                    
-    posbyte = posbyte % BLOCKSIZE;       
+    int posbyte = posbyteMB % BLOCKSIZE;       
     unsigned char mascara = 128;
     mascara >>= posbit;
     mascara &= bufferMB[posbyte];
@@ -160,6 +166,11 @@ char leer_bit(unsigned int nbloque){
         printf("Error, el contenido de la mascara es erroneo");
         return FALLO;
     }
+
+    #if DEBUG && NIVEL3
+        printf(GRAY "[leer_bit(%d)→ posbyteMB:%d, posbyte:%d, posbit:%d, nbloqueMB:%d, nbloqueabs:%d]\n" RESET, nbloque, posbyteMB, posbyte, posbit, nbloqueMB, nbloqueabs);
+    #endif
+
     return mascara;
 }
 
