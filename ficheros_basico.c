@@ -387,6 +387,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
             return FALLO;
         }else{
             ptr = reservar_bloque();
+            printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosDirectos[%u] = %u (reservado BF %u para BL %u)]\n" RESET, nblogico, ptr, nblogico, ptr);
             inodo.numBloquesOcupados++;
             inodo.ctime = time(NULL);
             salvar_inodo = 1;
@@ -398,6 +399,5 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
             }
         }
     }
-
     return FALLO; // hay que mirar que devuelve y como
 }

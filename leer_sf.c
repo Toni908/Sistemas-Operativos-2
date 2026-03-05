@@ -5,8 +5,8 @@
 
 
 #define NIVEL2 0
-#define NIVEL3 1
-#define NIVEL4 0
+#define NIVEL3 0
+#define NIVEL4 1
 
 struct superbloque SB;
 
@@ -137,6 +137,17 @@ int mostrar_inodo_raiz() {
     return EXITO;
 }
 
+int pruebaNivel4(){
+    struct inodo inodo;
+    reservar_inodo('f', '6'); //lo de algo es porq ns como asignar permisos, pero de momento creo que no peta
+    traducir_bloque_inodo(inodo, 8, 1);
+    traducir_bloque_inodo(inodo, 204, 1);
+    traducir_bloque_inodo(inodo, 30.004, 1);
+    traducir_bloque_inodo(inodo, 400.004, 1);
+    traducir_bloque_inodo(inodo, 468.750, 1);
+    return EXITO;
+}
+
 int main(int argc, char **argv){
 
     if(argc != 2){
@@ -166,7 +177,7 @@ int main(int argc, char **argv){
         mostrar_mapa_bits();
         mostrar_inodo_raiz();
     #endif
-
+    pruebaNivel4();
 
     bumount();
     return EXITO;
