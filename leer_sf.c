@@ -180,7 +180,10 @@ int main(int argc, char **argv){
         mostrar_mapa_bits();
         mostrar_inodo_raiz();
     #endif
-    pruebaNivel4();
+
+    #if NIVEL4
+        pruebaNivel4();
+    #endif
 
     bumount();
     return EXITO;

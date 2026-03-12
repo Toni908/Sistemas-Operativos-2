@@ -2,8 +2,8 @@
 #include "bloques.h"
 
 #define NIVEL2 0
-#define NIVEL3 1
-#define NIVEL4 0
+#define NIVEL3 0
+#define NIVEL4 1
 
 #define DEBUG 1
 
@@ -380,7 +380,11 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
             bread(ptr, buffer);
         }
         indice = obtener_indice(nblogico, nivel_punteros);
-        printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%u] = %u (reservado BF %u para punteros_nivel%u)]\n" RESET, nRangoBL-1, ptr, nRangoBL, nblogico);
+
+        #if DEBUG && NIVEL4
+            printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%u] = %u (reservado BF %u para punteros_nivel%u)]\n" RESET, nRangoBL-1, ptr, nRangoBL, nblogico);
+        #endif
+        
         ptr_ant = ptr;
         ptr = buffer[indice];
         nivel_punteros--;
@@ -391,7 +395,11 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
             return FALLO;
         }else{
             ptr = reservar_bloque();
-            printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosDirectos[%u] = %u (reservado BF %u para BL %u)]\n" RESET, nblogico, ptr, ptr, nblogico);
+
+            #if DEBUG && NIVEL4
+                printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosDirectos[%u] = %u (reservado BF %u para BL %u)]\n" RESET, nblogico, ptr, ptr, nblogico);
+            #endif
+
             inodo.numBloquesOcupados++;
             inodo.ctime = time(NULL);
             salvar_inodo = 1;
