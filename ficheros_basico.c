@@ -352,7 +352,9 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
     unsigned int ptr = 0;
     unsigned int ptr_ant = 0;
     unsigned int salvar_inodo = 0;
-    printf("%u", salvar_inodo); // para que no de warning
+    salvar_inodo++; //esto lo he puesto para poder quitar el print pero no tiene sentido
+    salvar_inodo--;
+    //printf("%u", salvar_inodo); // para que no de warning
     int indice = 0;
     unsigned int buffer[NPUNTEROS];
     leer_inodo(ninodo, &inodo);
@@ -378,16 +380,18 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
             bread(ptr, buffer);
         }
         indice = obtener_indice(nblogico, nivel_punteros);
+        printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%u] = %u (reservado BF %u para punteros_nivel%u)]\n" RESET, nRangoBL-1, ptr, nRangoBL, nblogico);
         ptr_ant = ptr;
         ptr = buffer[indice];
         nivel_punteros--;
+
     }
     if(ptr == 0){
         if(reservar == 0){
             return FALLO;
         }else{
             ptr = reservar_bloque();
-            printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosDirectos[%u] = %u (reservado BF %u para BL %u)]\n" RESET, nblogico, ptr, nblogico, ptr);
+            printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosDirectos[%u] = %u (reservado BF %u para BL %u)]\n" RESET, nblogico, ptr, ptr, nblogico);
             inodo.numBloquesOcupados++;
             inodo.ctime = time(NULL);
             salvar_inodo = 1;

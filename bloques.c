@@ -23,7 +23,7 @@ int bumount(){
     return descriptor;
 }
 
-//Funcion que sirve para escribir en un bloque
+//Funcion que sirve para escribir un bloque del dispositivo virtual, en el bloque físico especificado por nbloque
 int bwrite(unsigned int nbloque, const void *buf){
     off_t desplazamiento = nbloque * BLOCKSIZE; //calculamos el desplazamiento para saber donde empezar a escribir
     off_t pos = lseek(descriptor, desplazamiento , SEEK_SET); //movemos el puntero del fichero en el offset correto

@@ -138,13 +138,16 @@ int mostrar_inodo_raiz() {
 }
 
 int pruebaNivel4(){
-    struct inodo inodo;
+    //struct inodo *inodo;
+    unsigned int posInodo = SB.posPrimerInodoLibre;
+    //./inodo = reservar_inodo('f','6');
     reservar_inodo('f', '6'); //lo de algo es porq ns como asignar permisos, pero de momento creo que no peta
-    traducir_bloque_inodo(inodo, 8, 1);
-    traducir_bloque_inodo(inodo, 204, 1);
-    traducir_bloque_inodo(inodo, 30.004, 1);
-    traducir_bloque_inodo(inodo, 400.004, 1);
-    traducir_bloque_inodo(inodo, 468.750, 1);
+   // leer_inodo(reservar_inodo('f', '6'), inodo);
+    traducir_bloque_inodo(posInodo, 8, 1);
+    traducir_bloque_inodo(posInodo, 204, 1);
+    traducir_bloque_inodo(posInodo, 30.004, 1);
+    traducir_bloque_inodo(posInodo, 400.004, 1);
+    traducir_bloque_inodo(posInodo, 468.750, 1);
     return EXITO;
 }
 
