@@ -25,6 +25,7 @@
 #define RESET   "\x1b[0m"
 #define NEGRITA "\x1b[1m"
 
+//Nivel 1
 int bmount(const char *camino);
 int bumount();
 int bwrite(unsigned int nbloque, const void *buf);

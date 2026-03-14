@@ -65,11 +65,30 @@ struct inodo {     // comprobar que ocupa 128 bytes haciendo un sizeof(inodo)!!!
    // Fijarse que también se resta lo que ocupen las variables de alineación utilizadas!!!
 };
 
+struct STAT {
+    unsigned char tipo;       // Tipo ('l','d','f')
+    unsigned char permisos;   // Permisos
+
+    unsigned char reservado_alineacion1[6];
+
+    time_t atime;  // último acceso
+    time_t mtime;  // última modificación contenido
+    time_t ctime;  // última modificación del inodo
+    time_t btime;  // creación
+
+    unsigned int nlinks;             // enlaces
+    unsigned int tamEnBytesLog;      // tamaño lógico
+    unsigned int numBloquesOcupados; // bloques ocupados
+};
+
+//Nivel 2
 int tamMB(unsigned int nbloques);
 int tamAI(unsigned int ninodos);
 int initSB(unsigned int nbloques, unsigned int ninodos);
 int initMB(); 
 int initAI();
+
+//Nivel 3
 int escribir_bit(unsigned int nbloque, unsigned int bit);
 char leer_bit(unsigned int nbloque);
 int reservar_bloque();
@@ -77,4 +96,15 @@ int liberar_bloque(unsigned int nbloque);
 int escribir_inodo(unsigned int ninodo, struct inodo *inodo);
 int leer_inodo(unsigned int ninodo, struct inodo *inodo);
 int reservar_inodo(unsigned char tipo, unsigned char permisos);
+
+//Nivel 4
+int obtener_nRangoBL (struct inodo *inodo,unsigned int nblogico, unsigned int *ptr);
+int obtener_indice (unsigned int nblogico, int nivel_punteros);
 int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned char reservar);
+
+//Nivel 5
+int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes);
+int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes);
+int mi_stat_f(unsigned int ninodo, struct STAT *p_stat);
+int mi_chmod_f(unsigned int ninodo, unsigned char permisos);
+

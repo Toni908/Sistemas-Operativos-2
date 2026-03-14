@@ -439,3 +439,47 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
 
     return ptr;
 }
+
+int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){
+    return FALLO;
+}
+
+int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){
+    return FALLO;
+}
+
+int mi_stat_f(unsigned int ninodo, struct STAT *p_stat){
+    struct inodo inodo;
+
+    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
+    
+
+    p_stat->tipo = inodo.tipo;
+    p_stat->permisos = inodo.permisos;
+
+    p_stat->atime = inodo.atime;
+    p_stat->mtime = inodo.mtime;
+    p_stat->ctime = inodo.ctime;
+    p_stat->btime = inodo.btime;
+
+    p_stat->nlinks = inodo.nlinks;
+    p_stat->tamEnBytesLog = inodo.tamEnBytesLog;
+    p_stat->numBloquesOcupados = inodo.numBloquesOcupados;
+
+    return EXITO;
+}
+
+int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
+    struct inodo inodo;
+
+    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
+
+    inodo.permisos = permisos;
+
+    // actualizar cambio de metadatos
+    inodo.ctime = time(NULL);
+
+    if (escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
+
+    return EXITO;
+}
