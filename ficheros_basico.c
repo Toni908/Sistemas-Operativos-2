@@ -352,64 +352,86 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
     unsigned int ptr = 0;
     unsigned int ptr_ant = 0;
     unsigned int salvar_inodo = 0;
-    salvar_inodo++; //esto lo he puesto para poder quitar el print pero no tiene sentido
-    salvar_inodo--;
-    //printf("%u", salvar_inodo); // para que no de warning
-    int indice = 0;
+
+    int nRangoBL;
+    int nivel_punteros;
+    int indice;
+
     unsigned int buffer[NPUNTEROS];
-    leer_inodo(ninodo, &inodo);
-    int nRangoBL = obtener_nRangoBL(&inodo, nblogico, &ptr);
-    int nivel_punteros = nRangoBL;
-    while(nivel_punteros > 0){
-        if(ptr == 0){
-            if(reservar == 0){
+
+    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
+
+    nRangoBL = obtener_nRangoBL(&inodo, nblogico, &ptr);
+    nivel_punteros = nRangoBL;
+    // CASO PUNTEROS DIRECTOS
+    if (nRangoBL == 0){
+        if (ptr == 0){
+            if (reservar == 0){
+                return FALLO;
+            }
+            ptr = reservar_bloque();
+            inodo.punterosDirectos[nblogico] = ptr;
+            inodo.numBloquesOcupados++;
+            inodo.ctime = time(NULL); 
+            salvar_inodo = 1;
+            #if DEBUG && NIVEL4
+                printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosDirectos[%u] = %u (reservado BF %u para BL %u)]\n" RESET, nblogico, ptr, ptr, nblogico);
+            #endif
+        }
+    }else{ // CASO INDIRECTOS
+        while (nivel_punteros > 0){
+            if (ptr == 0){
+                if (reservar == 0){
+                    return FALLO;
+                }
+                ptr = reservar_bloque(); // bloque de punteros
+                inodo.numBloquesOcupados++;
+                inodo.ctime = time(NULL);
+                salvar_inodo = 1;
+
+                if (nivel_punteros == nRangoBL){
+                    inodo.punterosIndirectos[nRangoBL - 1] = ptr;
+                    #if DEBUG && NIVEL4
+                        printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%d] = %u (reservado BF %u para punteros_nivel%d)]\n" RESET, nRangoBL-1, ptr, ptr, nivel_punteros);
+                    #endif
+                }else{
+                    buffer[indice] = ptr;
+                    bwrite(ptr_ant, buffer);
+                    #if DEBUG && NIVEL4
+                        printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel%d [%d] = %u]\n" RESET, nivel_punteros, indice, ptr);
+                    #endif
+                }
+                memset(buffer, 0, BLOCKSIZE);
+            }else{
+                bread(ptr, buffer);
+            }
+            indice = obtener_indice(nblogico, nivel_punteros);
+            ptr_ant = ptr;
+            ptr = buffer[indice];
+
+            nivel_punteros--;
+        }
+        // BLOQUE DE DATOS
+        if (ptr == 0){
+            if (reservar == 0){
                 return FALLO;
             }
             ptr = reservar_bloque();
             inodo.numBloquesOcupados++;
             inodo.ctime = time(NULL);
             salvar_inodo = 1;
-            if(nivel_punteros == nRangoBL){
-                inodo.punterosIndirectos[nRangoBL -1] = ptr;
-            }else{
-                buffer[indice] = ptr;
-                bwrite(ptr_ant, buffer);
-            }
-            memset(buffer, 0, BLOCKSIZE);
-        }else{
-            bread(ptr, buffer);
-        }
-        indice = obtener_indice(nblogico, nivel_punteros);
 
-        #if DEBUG && NIVEL4
-            printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%u] = %u (reservado BF %u para punteros_nivel%u)]\n" RESET, nRangoBL-1, ptr, nRangoBL, nblogico);
-        #endif
-        
-        ptr_ant = ptr;
-        ptr = buffer[indice];
-        nivel_punteros--;
-
-    }
-    if(ptr == 0){
-        if(reservar == 0){
-            return FALLO;
-        }else{
-            ptr = reservar_bloque();
-
+            buffer[indice] = ptr;
+            bwrite(ptr_ant, buffer);
+            
             #if DEBUG && NIVEL4
-                printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosDirectos[%u] = %u (reservado BF %u para BL %u)]\n" RESET, nblogico, ptr, ptr, nblogico);
+                printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel1 [%d] = %u (reservado BF %u para BL %u)]\n" RESET, indice, ptr, ptr, nblogico);
             #endif
-
-            inodo.numBloquesOcupados++;
-            inodo.ctime = time(NULL);
-            salvar_inodo = 1;
-            if(nRangoBL == 0){
-                inodo.punterosDirectos[nblogico] = ptr;
-            }else{
-                buffer[indice] = ptr;
-                bwrite(ptr_ant, buffer);
-            }
         }
     }
-    return FALLO; // hay que mirar que devuelve y como
+    if (salvar_inodo){
+        escribir_inodo(ninodo, &inodo);
+    }
+
+    return ptr;
 }

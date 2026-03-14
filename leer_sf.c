@@ -138,14 +138,12 @@ int mostrar_inodo_raiz() {
 }
 
 int pruebaNivel4(){
-    //./inodo = reservar_inodo('f','6');
-    int ninodo = reservar_inodo('f', '6'); //lo de algo es porq ns como asignar permisos, pero de momento creo que no peta
-   // leer_inodo(reservar_inodo('f', '6'), inodo);
+    int ninodo = reservar_inodo('f', '6'); 
     traducir_bloque_inodo(ninodo, 8, 1);
     traducir_bloque_inodo(ninodo, 204, 1);
-    traducir_bloque_inodo(ninodo, 30.004, 1);
-    traducir_bloque_inodo(ninodo, 400.004, 1);
-    traducir_bloque_inodo(ninodo, 468.750, 1);
+    traducir_bloque_inodo(ninodo, 30004, 1);
+    traducir_bloque_inodo(ninodo, 400004, 1);
+    traducir_bloque_inodo(ninodo, 468750, 1);
     return EXITO;
 }
 
