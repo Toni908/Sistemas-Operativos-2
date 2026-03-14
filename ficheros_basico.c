@@ -343,7 +343,7 @@ int obtener_indice (unsigned int nblogico, int nivel_punteros){
         }
     }
 
-    return FALLO; // hay que mirar que devuelve y como
+    return FALLO; 
 }
 
 //Dado un bloque logico nos devuelve donde esta a nivel físico
