@@ -137,13 +137,53 @@ int mostrar_inodo_raiz() {
     return EXITO;
 }
 
+int mostrar_inodo(int ninodo) {
+    struct inodo inodo;
+    char atime[80], mtime[80], ctime[80], btime[80];
+    struct tm *ts;
+
+    printf("\nDATOS DEL INODO RESERVADO %u\n", ninodo);
+
+    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
+
+    //formatear hora (copiado y pegado de adelaida)
+    ts = localtime(&inodo.atime);
+    strftime(atime, sizeof(atime), "%a %Y-%m-%d %H:%M:%S", ts);
+
+    ts = localtime(&inodo.mtime);
+    strftime(mtime, sizeof(mtime), "%a %Y-%m-%d %H:%M:%S", ts);
+
+    ts = localtime(&inodo.ctime);
+    strftime(ctime, sizeof(ctime), "%a %Y-%m-%d %H:%M:%S", ts);
+
+    ts = localtime(&inodo.btime);
+    strftime(btime, sizeof(btime), "%a %Y-%m-%d %H:%M:%S", ts);
+
+    //prints
+    printf("tipo: %c\n", inodo.tipo);
+    printf("permisos: %u\n", inodo.permisos);
+    printf("atime: %s\n", atime);
+    printf("mtime: %s\n", mtime);
+    printf("ctime: %s\n", ctime);
+    printf("btime: %s\n", btime);
+    printf("nlinks: %u\n", inodo.nlinks);
+    printf("tamEnBytesLog: %u\n", inodo.tamEnBytesLog);
+    printf("numBloquesOcupados: %u\n", inodo.numBloquesOcupados);
+
+    return EXITO;
+}
+
 int pruebaNivel4(){
-    int ninodo = reservar_inodo('f', '6'); 
+    printf("\nINODO 1. TRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 y 468.750\n\n");
+    int ninodo = reservar_inodo('f', 6); 
+
     traducir_bloque_inodo(ninodo, 8, 1);
     traducir_bloque_inodo(ninodo, 204, 1);
     traducir_bloque_inodo(ninodo, 30004, 1);
     traducir_bloque_inodo(ninodo, 400004, 1);
     traducir_bloque_inodo(ninodo, 468750, 1);
+
+    mostrar_inodo(ninodo);
     return EXITO;
 }
 
@@ -178,7 +218,10 @@ int main(int argc, char **argv){
     #endif
 
     #if NIVEL4
+        leer_superbloque();
         pruebaNivel4();
+        if(bread(posSB, &SB) == FALLO) return FALLO;
+        printf("\nSB.posPrimerInodoLibre = %u\n", SB.posPrimerInodoLibre);
     #endif
 
     bumount();

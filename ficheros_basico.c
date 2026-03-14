@@ -398,7 +398,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
                     buffer[indice] = ptr;
                     bwrite(ptr_ant, buffer);
                     #if DEBUG && NIVEL4
-                        printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel%d [%d] = %u]\n" RESET, nivel_punteros, indice, ptr);
+                        printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel%d [%d] = %u (reservado BF %u para punteros_nivel%u)]\n" RESET, nivel_punteros+1, indice, ptr, ptr, nivel_punteros);
                     #endif
                 }
                 memset(buffer, 0, BLOCKSIZE);
@@ -429,6 +429,9 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
             #endif
         }
     }
+    #if DEBUG && NIVEL4
+        printf("\n");
+    #endif
     if (salvar_inodo){
         escribir_inodo(ninodo, &inodo);
     }

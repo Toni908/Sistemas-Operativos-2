@@ -25,7 +25,7 @@ int main(int argc, char **argv){
     initMB();
     initAI();
 
-    #if NIVEL3
+    #if NIVEL3 || NIVEL4
         reservar_inodo('d', 7);
     #endif
 
