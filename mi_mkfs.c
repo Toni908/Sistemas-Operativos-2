@@ -3,8 +3,9 @@
 #include "ficheros_basico.h"
 
 #define NIVEL2 0
-#define NIVEL3 1
+#define NIVEL3 0
 #define NIVEL4 0
+#define NIVEL5 1
 
 int main(int argc, char **argv){
     unsigned char buffer[BLOCKSIZE];
@@ -25,7 +26,7 @@ int main(int argc, char **argv){
     initMB();
     initAI();
 
-    #if NIVEL3 || NIVEL4
+    #if NIVEL3 || NIVEL4 || NIVEL5
         reservar_inodo('d', 7);
     #endif
 
