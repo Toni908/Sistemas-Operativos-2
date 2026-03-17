@@ -108,3 +108,6 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
 int mi_stat_f(unsigned int ninodo, struct STAT *p_stat);
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos);
 
+//Nivel 6
+int liberar_inodo(unsigned int ninodo);
+int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo);
