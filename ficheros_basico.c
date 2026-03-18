@@ -467,7 +467,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     if (primerBL == ultimoBL){
         bf = traducir_bloque_inodo(ninodo, primerBL, 1);
         bread(bf, buf_bloque);
-        memcpy(buf_bloque + desp1, buf_original, nbytes);
+        memcpy(buf_bloque + desp1, buf_original, nbytes); // destino origen bytes
         bwrite(bf, buf_bloque);
         bytes_escritos = nbytes;
     } 
@@ -507,7 +507,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     return bytes_escritos;
 }
 
-int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){
+int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){ // lo mismo con los errores
     struct inodo inodo;
     unsigned char buf_bloque[BLOCKSIZE];
     unsigned int primerBL, ultimoBL;
@@ -528,21 +528,21 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     if (offset + nbytes > inodo.tamEnBytesLog){
         nbytes = inodo.tamEnBytesLog - offset;
     }
+
     primerBL = offset / BLOCKSIZE;
     ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
     desp1 = offset % BLOCKSIZE;
     desp2 = (offset + nbytes - 1) % BLOCKSIZE;
-    unsigned int bf;
+    unsigned int bf; // bloque fisico
 
     // CASO 1
     if (primerBL == ultimoBL){
         bf = traducir_bloque_inodo(ninodo, primerBL, 0);
         if (bf != FALLO){
             bread(bf, buf_bloque);
-            memcpy(buf_original, buf_bloque + desp1, nbytes);
+            memcpy(buf_original, buf_bloque + desp1, nbytes);  // destino origen bytes
         }
         bytes_leidos = nbytes;
-
     } 
     else {
         // PRIMER BLOQUE
@@ -568,7 +568,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             bread(bf, buf_bloque);
             memcpy(buf_original + bytes_leidos, buf_bloque, desp2 + 1);
         }
-        bytes_leidos += desp2 + 1;
+        bytes_leidos += desp2 + 1; // incluimos el 0
     }
 
     inodo.atime = time(NULL);
