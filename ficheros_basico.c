@@ -605,3 +605,40 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
 
     return EXITO;
 }
+
+int liberar_inodo(unsigned int ninodo) {
+    struct inodo inodo;
+    struct superbloque SB;
+
+    // Leer el inodo
+    if (leer_inodo(ninodo, &inodo) == -1) return -1;
+
+    // Liberar todos sus bloques
+    int bloques_liberados = liberar_bloques_inodo(0, &inodo);
+    if (bloques_liberados == -1) return -1;
+
+    // Actualizar campos del inodo
+    inodo.tipo = 'l'; // libre
+    inodo.tamEnBytesLog = 0;
+    inodo.numBloquesOcupados = 0;
+
+    // Leer superbloque
+    if (bread(posSB, &SB) == -1) return -1;
+
+    // Enlazar con la lista de libres
+    inodo.punterosDirectos[0] = SB.posPrimerInodoLibre;
+
+    // Actualizar cabeza de la lista
+    SB.posPrimerInodoLibre = ninodo;
+    SB.cantInodosLibres++;
+
+    // Escribir inodo y superbloque
+    if (escribir_inodo(ninodo, &inodo) == -1) return -1;
+    if (bwrite(posSB, &SB) == -1) return -1;
+
+    return ninodo;
+}
+
+int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
+
+}
