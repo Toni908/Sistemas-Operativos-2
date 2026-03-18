@@ -440,8 +440,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
     return ptr;
 }
 
-int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){
-
+int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){ // tendriamos que ver de gestionar errores de read memcpy etc?
     struct inodo inodo;
     unsigned char buf_bloque[BLOCKSIZE];
     unsigned int primerBL, ultimoBL;
@@ -462,7 +461,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     desp1 = offset % BLOCKSIZE;
     desp2 = (offset + nbytes - 1) % BLOCKSIZE;
 
-    unsigned int bf;
+    unsigned int bf; // Blque fisico
 
     // CASO 1: todo en el mismo bloque
     if (primerBL == ultimoBL){
@@ -472,22 +471,22 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         bwrite(bf, buf_bloque);
         bytes_escritos = nbytes;
     } 
-    else {
-        // PRIMER BLOQUE
+    else { // CASO 2:
+        // Primer Bloque (1024 - desp1 B)
         bf = traducir_bloque_inodo(ninodo, primerBL, 1);
         bread(bf, buf_bloque);
         memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
         bwrite(bf, buf_bloque);
         bytes_escritos += BLOCKSIZE - desp1;
 
-        // BLOQUES INTERMEDIOS
+        // Bloques Intermedios (1024B)
         for (unsigned int i = primerBL + 1; i < ultimoBL; i++){
             bf = traducir_bloque_inodo(ninodo, i, 1);
             bwrite(bf, buf_original + bytes_escritos);
             bytes_escritos += BLOCKSIZE;
         }
 
-        // ÚLTIMO BLOQUE
+        // Ultimo Bloque (despl2 +1 B, +1 porque se escribe el 0)
         bf = traducir_bloque_inodo(ninodo, ultimoBL, 1);
         bread(bf, buf_bloque);
         memcpy(buf_bloque, buf_original + bytes_escritos, desp2 + 1);
@@ -495,19 +494,20 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         bytes_escritos += desp2 + 1;
     }
 
-    // actualizar tamaño lógico
+    // actualizar tamaño lógico (no estoy seguro de este, ya que puede dar el caso de que simplemente hemos reescrito algo escrito, entonces, no
+    // habra aumentado el tamaño en tamenBytesLog, por eso chqueamos el offset +nbytes, y por eso tenemos los bytes_escritos separados en lugar 
+    // de hacer offset + nbytes en el return, por la reescritura.)
     if (offset + nbytes > inodo.tamEnBytesLog){
         inodo.tamEnBytesLog = offset + nbytes;
-        inodo.ctime = time(NULL);
+        inodo.ctime = time(NULL); // ultima data de update del inodo
     }
 
-    inodo.mtime = time(NULL);
-    escribir_inodo(ninodo, &inodo);
+    inodo.mtime = time(NULL); // ultima data de update de los datos del inodo
+    if(escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
     return bytes_escritos;
 }
 
 int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){
-
     struct inodo inodo;
     unsigned char buf_bloque[BLOCKSIZE];
     unsigned int primerBL, ultimoBL;
