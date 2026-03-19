@@ -457,13 +457,12 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
     primerBL = offset / BLOCKSIZE;
     ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
-
     desp1 = offset % BLOCKSIZE;
     desp2 = (offset + nbytes - 1) % BLOCKSIZE;
 
     unsigned int bf; // Blque fisico
 
-    // CASO 1: todo en el mismo bloque
+    // Caso 1: todo en el mismo bloque
     if (primerBL == ultimoBL){
         bf = traducir_bloque_inodo(ninodo, primerBL, 1);
         bread(bf, buf_bloque);
@@ -471,7 +470,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         bwrite(bf, buf_bloque);
         bytes_escritos = nbytes;
     } 
-    else { // CASO 2:
+    else { // Caso 2:
         // Primer Bloque (1024 - desp1 B)
         bf = traducir_bloque_inodo(ninodo, primerBL, 1);
         bread(bf, buf_bloque);
@@ -533,9 +532,10 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
     desp1 = offset % BLOCKSIZE;
     desp2 = (offset + nbytes - 1) % BLOCKSIZE;
+
     unsigned int bf; // bloque fisico
 
-    // CASO 1
+    // Caso 1
     if (primerBL == ultimoBL){
         bf = traducir_bloque_inodo(ninodo, primerBL, 0);
         if (bf != FALLO){
@@ -544,8 +544,8 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         }
         bytes_leidos = nbytes;
     } 
-    else {
-        // PRIMER BLOQUE
+    else { // Caso 2
+        // Primer Bloque
         bf = traducir_bloque_inodo(ninodo, primerBL, 0);
         if (bf != FALLO){
             bread(bf, buf_bloque);
@@ -553,7 +553,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         }
         bytes_leidos += BLOCKSIZE - desp1;
 
-        // BLOQUES INTERMEDIOS
+        // Bloque Intermedio
         for (unsigned int i = primerBL + 1; i < ultimoBL; i++){
             bf = traducir_bloque_inodo(ninodo, i, 0);
             if (bf != FALLO){
@@ -562,7 +562,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             }
             bytes_leidos += BLOCKSIZE;
         }
-        // ÚLTIMO BLOQUE
+        // Ultimo Bloque
         bf = traducir_bloque_inodo(ninodo, ultimoBL, 0);
         if (bf != FALLO){
             bread(bf, buf_bloque);
@@ -618,10 +618,9 @@ int liberar_inodo(unsigned int ninodo) {
     if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
 
     // Liberar todos sus bloques
-    int bloques_liberados = liberar_bloques_inodo(0, &inodo); // por hacer
-    if (bloques_liberados == FALLO) return FALLO;
+    if (liberar_bloques_inodo(0, &inodo) == FALLO) return FALLO; // por hacer
 
-    // Actualizar campos del inodo
+    // Actualizar campos del inodo para hacerlo que no tiene na
     inodo.tipo = 'l'; // libre
     inodo.tamEnBytesLog = 0;
     inodo.numBloquesOcupados = 0;
@@ -629,10 +628,8 @@ int liberar_inodo(unsigned int ninodo) {
     // Leer superbloque
     if (bread(posSB, &SB) == FALLO) return FALLO;
 
-    // Enlazar con la lista de libres
+    // Cambiar Inodos libres
     inodo.punterosDirectos[0] = SB.posPrimerInodoLibre;
-
-    // Actualizar cabeza de la lista
     SB.posPrimerInodoLibre = ninodo;
     SB.cantInodosLibres++;
 
