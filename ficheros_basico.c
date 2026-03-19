@@ -5,6 +5,7 @@
 #define NIVEL3 0
 #define NIVEL4 0
 #define NIVEL5 1
+#define NIVEL6 0
 
 #define DEBUG 1
 
@@ -364,7 +365,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
 
     nRangoBL = obtener_nRangoBL(&inodo, nblogico, &ptr);
     nivel_punteros = nRangoBL;
-    // CASO PUNTEROS DIRECTOS
+    // Punetros Directos
     if (nRangoBL == 0){
         if (ptr == 0){
             if (reservar == 0){
@@ -379,7 +380,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
                 printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosDirectos[%u] = %u (reservado BF %u para BL %u)]\n" RESET, nblogico, ptr, ptr, nblogico);
             #endif
         }
-    }else{ // CASO INDIRECTOS
+    }else{ // Casos indirectos
         while (nivel_punteros > 0){
             if (ptr == 0){
                 if (reservar == 0){
@@ -412,7 +413,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
 
             nivel_punteros--;
         }
-        // BLOQUE DE DATOS
+        // Bloque de datos
         if (ptr == 0){
             if (reservar == 0){
                 return FALLO;
@@ -617,10 +618,10 @@ int liberar_inodo(unsigned int ninodo) {
     // Leer el inodo
     if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
 
-    // Liberar todos sus bloques
+    // liberar todos sus bloques
     if (liberar_bloques_inodo(0, &inodo) == FALLO) return FALLO; // por hacer
 
-    // Actualizar campos del inodo para hacerlo que no tiene na
+    // actualizar campos del inodo para hacerlo que no tiene na
     inodo.tipo = 'l'; // libre
     inodo.tamEnBytesLog = 0;
     inodo.numBloquesOcupados = 0;
@@ -628,10 +629,13 @@ int liberar_inodo(unsigned int ninodo) {
     // Leer superbloque
     if (bread(posSB, &SB) == FALLO) return FALLO;
 
-    // Cambiar Inodos libres
+    // cambiar Inodos libres
     inodo.punterosDirectos[0] = SB.posPrimerInodoLibre;
     SB.posPrimerInodoLibre = ninodo;
     SB.cantInodosLibres++;
+
+    // actualizar cambio de metadatos
+    inodo.ctime = time(NULL);    
 
     // Escribir inodo y superbloque
     if (escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;

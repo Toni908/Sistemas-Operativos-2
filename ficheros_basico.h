@@ -69,7 +69,7 @@ struct STAT {
     unsigned char tipo;       // Tipo ('l','d','f')
     unsigned char permisos;   // Permisos
 
-    unsigned char reservado_alineacion1[6];
+    unsigned char reservado_alineacion1[6]; // tengo que mirarlo
 
     time_t atime;  // último acceso
     time_t mtime;  // última modificación contenido
