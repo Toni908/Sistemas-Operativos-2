@@ -606,16 +606,20 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
     return EXITO;
 }
 
+int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
+
+}
+
 int liberar_inodo(unsigned int ninodo) {
     struct inodo inodo;
     struct superbloque SB;
 
     // Leer el inodo
-    if (leer_inodo(ninodo, &inodo) == -1) return -1;
+    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
 
     // Liberar todos sus bloques
-    int bloques_liberados = liberar_bloques_inodo(0, &inodo);
-    if (bloques_liberados == -1) return -1;
+    int bloques_liberados = liberar_bloques_inodo(0, &inodo); // por hacer
+    if (bloques_liberados == FALLO) return FALLO;
 
     // Actualizar campos del inodo
     inodo.tipo = 'l'; // libre
@@ -623,7 +627,7 @@ int liberar_inodo(unsigned int ninodo) {
     inodo.numBloquesOcupados = 0;
 
     // Leer superbloque
-    if (bread(posSB, &SB) == -1) return -1;
+    if (bread(posSB, &SB) == FALLO) return FALLO;
 
     // Enlazar con la lista de libres
     inodo.punterosDirectos[0] = SB.posPrimerInodoLibre;
@@ -633,12 +637,8 @@ int liberar_inodo(unsigned int ninodo) {
     SB.cantInodosLibres++;
 
     // Escribir inodo y superbloque
-    if (escribir_inodo(ninodo, &inodo) == -1) return -1;
-    if (bwrite(posSB, &SB) == -1) return -1;
+    if (escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
+    if (bwrite(posSB, &SB) == FALLO) return FALLO;
 
     return ninodo;
-}
-
-int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
-
 }
