@@ -613,8 +613,129 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
 }
 
 int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
+    unsigned int nivel_punteros = 0;
+    unsigned int nBL = primerBL;
+    unsigned int ultimoBL = 0; 
+    unsigned int ptr = 0;
+    int nRangoBL = 0;
+    int liberados = 0;
+    int eof = 0;
 
+    // fichero vacio
+    if(inodo->tamEnBytesLog == 0){ 
+        return 0; 
+    }
+    
+    if(inodo->tamEnBytesLog % BLOCKSIZE == 0){
+        ultimoBL = inodo->tamEnBytesLog / BLOCKSIZE - 1;
+    } else {
+        ultimoBL = inodo->tamEnBytesLog / BLOCKSIZE;
+    }
+    
+    // directos
+    nRangoBL = obtener_nRangoBL(inodo,nBL,&ptr);
+    if(nRangoBL == 0){
+        liberados = liberar_directos(&nBL, ultimoBL, inodo, &eof);
+    }
+
+    // indirectos
+    while(!eof){
+        nRangoBL = obtener_nRangoBL(inodo, nBL, &ptr); // Se recalcula en caso de que modifiquemos el nBL en directos
+        nivel_punteros = nRangoBL;
+        liberados = liberados + liberar_indirectos_recursivo(&nBL, primerBL, ultimoBL, inodo, nRangoBL, nivel_punteros, &ptr, &eof);
+    }
+    
+    return liberados;
 }
+
+int liberar_directos (unsigned int *nBL, unsigned int ultimoBL,struct inodo *inodo, int *eof){
+    int liberados = 0;
+
+    while (*nBL < DIRECTOS && !(*eof)) {
+        if(inodo->punterosDirectos[*nBL] != 0 ){
+            liberar_bloque(inodo->punterosDirectos[*nBL]);
+            inodo->punterosDirectos[*nBL] = 0;
+            liberados++;
+        }
+        
+        *nBL= *nBL+1;
+        if(*nBL > ultimoBL){
+            *eof = 1;
+        }
+    }
+    
+    return liberados;
+}
+
+int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsigned int ultimoBL, struct inodo *inodo, int nRangoBL, unsigned int nivel_punteros, unsigned int *ptr, int *eof){
+    int liberados = 0;
+    int modificado = 0;
+    unsigned int bloquePunteros[NPUNTEROS];
+    unsigned int bufferCeros[NPUNTEROS] = {0};
+
+    if(*ptr == 0){
+        switch (nRangoBL) {
+            case 1:
+                *nBL = INDIRECTOS0;
+                break;
+            case 2:
+                *nBL = INDIRECTOS1;
+                break;
+            case 3:
+                *nBL = INDIRECTOS2;
+                break;
+        }
+        return liberados;
+    }
+
+    int indice_inicial = obtener_indice(*nBL, nivel_punteros);
+    if(indice_inicial == 0 || *nBL == primerBL){
+        if(bread(*ptr, bloquePunteros) == FALLO) return FALLO;
+    }
+
+    for(int i = indice_inicial; (i = NPUNTEROS -1) || (*eof); i++){
+        if(bloquePunteros[i] !=  0){
+            if(nivel_punteros == 1){
+                liberar_bloque(bloquePunteros[i]);
+                bloquePunteros[i] = 0;
+                modificado = 1;
+                liberados++;
+                *nBL = *nBL + 1;
+            }else{
+                unsigned int ptr_antes = bloquePunteros[i];
+                liberados = liberados + liberar_indirectos_recursivo(nBL, primerBL, ultimoBL, inodo, nRangoBL, nivel_punteros -1, &bloquePunteros[i], eof);
+                if(bloquePunteros[i] != ptr_antes){
+                    modificado = 1;
+                }
+            }
+        }else{
+            switch (nivel_punteros) {
+                case 1:
+                    *nBL = *nBL +1;
+                    break;
+                case 2:
+                    *nBL = *nBL + NPUNTEROS;
+                    break;
+                case 3:
+                    *nBL = *nBL + NPUNTEROS*NPUNTEROS;
+                    break;
+            }
+        return liberados;
+        }
+        if(*nBL > ultimoBL){
+            *eof = 1;
+        }
+    }
+    if(memcmp(bloquePunteros, bufferCeros, BLOCKSIZE) == 0){
+        liberar_bloque(*ptr);
+        *ptr = 0;
+        liberados ++;
+    }else if(modificado == 1){
+        bwrite(*ptr, bloquePunteros);
+    }
+    return liberados;
+}
+
 
 int liberar_inodo(unsigned int ninodo) {
     struct inodo inodo;

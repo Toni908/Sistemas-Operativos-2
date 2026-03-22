@@ -111,3 +111,5 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos);
 //Nivel 6
 int liberar_inodo(unsigned int ninodo);
 int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo);
+int liberar_directos (unsigned int *nBL, unsigned int ultimoBL,struct inodo *inodo, int *eof);
+int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsigned int ultimoBL, struct inodo *inodo, int nRangoBL, unsigned int nivel_punteros, unsigned int *ptr, int *eof);
