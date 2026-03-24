@@ -782,3 +782,32 @@ int liberar_inodo(unsigned int ninodo) {
 
     return ninodo;
 }
+
+//En proceso
+int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
+    struct inodo inodo;
+    unsigned int primerBL = 0;
+    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
+
+    if ((inodo.permisos & 2) != 2) { //En primer lugar comprobamos que el inodo tenga permisos de escritura
+       fprintf(stderr, RED "No hay permisos de escritura\n" RESET);
+       return FALLO;
+    }
+
+    if(nbytes > inodo.tamEnBytesLog){ //Esto es porque no se puede truncar mas alla del tamaño en bytes logico del fichero/directorio
+        return FALLO;
+    }
+ 
+    if(nbytes % BLOCKSIZE == 0){ //Calculamos el primerBL
+        primerBL =  nbytes/BLOCKSIZE;
+    }else{
+        primerBL =  nbytes/BLOCKSIZE + 1;
+    }
+    int liberados = liberar_bloques_inodo(primerBL, &inodo);
+    inodo.atime = time(NULL); //Actualizamos atime 
+    inodo.ctime = time(NULL); //Actualizamos ctime
+    inodo.tamEnBytesLog = nbytes;
+    inodo.numBloquesOcupados = inodo.numBloquesOcupados - liberados;
+    escribir_inodo(ninodo, &inodo); //guardamos el inodo
+    return liberados;
+}
