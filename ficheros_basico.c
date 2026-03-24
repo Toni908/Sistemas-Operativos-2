@@ -506,6 +506,8 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     // actualizar tamaño lógico (no estoy seguro de este, ya que puede dar el caso de que simplemente hemos reescrito algo escrito, entonces, no
     // habra aumentado el tamaño en tamenBytesLog, por eso chqueamos el offset +nbytes, y por eso tenemos los bytes_escritos separados en lugar 
     // de hacer offset + nbytes en el return, por la reescritura.)
+    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO; // volver a leer inodo para bloques modificados
+
     if (offset + nbytes > inodo.tamEnBytesLog){
         inodo.tamEnBytesLog = offset + nbytes;
     }
@@ -580,6 +582,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         }
         bytes_leidos += desp2 + 1; // incluimos el 0
     }
+    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO; // volver a leer inodo para bloques modificados
 
     inodo.atime = time(NULL);
     if(escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
