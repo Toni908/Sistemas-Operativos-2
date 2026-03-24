@@ -466,7 +466,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     desp1 = offset % BLOCKSIZE;
     desp2 = (offset + nbytes - 1) % BLOCKSIZE;
 
-    unsigned int bf; // Blque fisico
+    int bf; // Blque fisico
 
     // Caso 1: todo en el mismo bloque
     if (primerBL == ultimoBL){
@@ -508,9 +508,9 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     // de hacer offset + nbytes en el return, por la reescritura.)
     if (offset + nbytes > inodo.tamEnBytesLog){
         inodo.tamEnBytesLog = offset + nbytes;
-        inodo.ctime = time(NULL); // ultima data de update del inodo
     }
 
+    inodo.ctime = time(NULL); // ultima data de update del inodo
     inodo.mtime = time(NULL); // ultima data de update de los datos del inodo
     if(escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
     return bytes_escritos;
@@ -543,37 +543,41 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     desp1 = offset % BLOCKSIZE;
     desp2 = (offset + nbytes - 1) % BLOCKSIZE;
 
-    unsigned int bf; // bloque fisico
+    int bf; // bloque fisico
 
     // Caso 1
     if (primerBL == ultimoBL){
         bf = traducir_bloque_inodo(ninodo, primerBL, 0);
-        if(bf == FALLO) return FALLO;
-        bread(bf, buf_bloque);
-        memcpy(buf_original, buf_bloque + desp1, nbytes);  // destino origen bytes
+        if(bf != FALLO){
+            bread(bf, buf_bloque);
+            memcpy(buf_original, buf_bloque + desp1, nbytes);  // destino origen bytes
+        }
         bytes_leidos = nbytes;
     } 
     else { // Caso 2
         // Primer Bloque
         bf = traducir_bloque_inodo(ninodo, primerBL, 0);
-        if(bf == FALLO) return FALLO;
-        bread(bf, buf_bloque);
-        memcpy(buf_original, buf_bloque + desp1, BLOCKSIZE - desp1);
+        if(bf != FALLO){
+            bread(bf, buf_bloque);
+            memcpy(buf_original, buf_bloque + desp1, BLOCKSIZE - desp1);
+        }
         bytes_leidos += BLOCKSIZE - desp1;
 
         // Bloque Intermedio
         for (unsigned int i = primerBL + 1; i < ultimoBL; i++){
             bf = traducir_bloque_inodo(ninodo, i, 0);
-            if(bf == FALLO) return FALLO;
-            bread(bf, buf_bloque);
-            memcpy(buf_original + bytes_leidos, buf_bloque, BLOCKSIZE);
+            if(bf != FALLO){
+                bread(bf, buf_bloque);
+                memcpy(buf_original + bytes_leidos, buf_bloque, BLOCKSIZE);
+            }
             bytes_leidos += BLOCKSIZE;
         }
         // Ultimo Bloque
         bf = traducir_bloque_inodo(ninodo, ultimoBL, 0);
-        if(bf == FALLO) return FALLO;
-        bread(bf, buf_bloque);
-        memcpy(buf_original + bytes_leidos, buf_bloque, desp2 + 1);
+        if(bf != FALLO){
+            bread(bf, buf_bloque);
+            memcpy(buf_original + bytes_leidos, buf_bloque, desp2 + 1);
+        }
         bytes_leidos += desp2 + 1; // incluimos el 0
     }
 
