@@ -4,7 +4,7 @@
 int main(int argc, char **argv){
      
     if(argv[1] == NULL || argv[2] == NULL || argv[3] == NULL){
-        fprintf(stderr, RED "Sintaxis: permitir <nombre_dispositivo> <ninodo> <permisos>" RESET);
+        fprintf(stderr, RED "Sintaxis: truncar <nombre_dispositivo> <ninodo> <nbytes>" RESET);
         exit(-1);
     }
     
@@ -12,7 +12,11 @@ int main(int argc, char **argv){
         return FALLO;
     }
 
-    mi_chmod_f(atoi(argv[2]), atoi(argv[3]));
+    if(atoi(argv[3]) == 0){
+        liberar_inodo(atoi(argv[2]));
+    }else{
+        mi_truncar_f(atoi(argv[2]),atoi(argv[3]));
+    }
 
     bumount();  //desmontamos el dispostivo virtual
 
