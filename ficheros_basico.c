@@ -813,13 +813,11 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     }else{
         primerBL =  nbytes/BLOCKSIZE + 1;
     }
-
     int liberados = liberar_bloques_inodo(primerBL, &inodo);
-
-    //AQUI ACTUALIZAR LOS TIMES (MIRAR COMO SE HACE)
-
+    inodo.atime = time(NULL); //Actualizamos atime 
+    inodo.ctime = time(NULL); //Actualizamos ctime
     inodo.tamEnBytesLog = nbytes;
     inodo.numBloquesOcupados = inodo.numBloquesOcupados - liberados;
-    
+    escribir_inodo(ninodo, &inodo); //guardamos el inodo
     return liberados;
 }
