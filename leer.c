@@ -16,7 +16,6 @@ int main(int argc, char **argv){
     if(bmount(argv[1]) == FALLO){ // Disco virtual
         return FALLO;
     }
-
     leidos = mi_read_f(atoi(argv[2]), buffer, offset, tambuffer);
     printf("%s\n", buffer);
     while(leidos > 0){
