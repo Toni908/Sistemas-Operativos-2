@@ -12,7 +12,7 @@ int main(int argc, char **argv){
         return FALLO;
     }
 
-    if(atoi(argv[3]) == 0){
+    if(atoi(argv[3]) == 0){ //si nbytes es igual a 0
         liberar_inodo(atoi(argv[2]));
     }else{
         mi_truncar_f(atoi(argv[2]),atoi(argv[3]));

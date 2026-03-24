@@ -774,7 +774,6 @@ int liberar_inodo(unsigned int ninodo) {
     return ninodo;
 }
 
-//En proceso
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     struct inodo inodo;
     unsigned int primerBL = 0;
