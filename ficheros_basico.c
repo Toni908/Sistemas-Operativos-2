@@ -524,82 +524,72 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
 int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes) {
     struct inodo inodo;
-    unsigned char buf_bloque[BLOCKSIZE];
-    unsigned int primerBL, ultimoBL;
-    unsigned int desp1, desp2;
-    int bytes_leidos = 0;
-
-    // Leer el inodo
     if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
 
-    // Comprobar permiso de lectura
+    // Comprobar permisos de lectura
     if ((inodo.permisos & 4) != 4) {
-        fprintf(stderr, RED "Error: no hay permiso de lectura\n" RESET);
+        fprintf(stderr, RED "No hay permisos de lectura\n" RESET);
         return FALLO;
     }
 
-    // Si el offset está más allá del final, no se lee nada
+    // Ajustar lectura si se sale del tamaño del fichero
     if (offset >= inodo.tamEnBytesLog) {
-        return 0;
+        return 0; // No se puede leer nada
     }
-
-    // Ajustar nbytes para no pasarse del final del fichero
-    if (offset + nbytes > inodo.tamEnBytesLog) {
+    if (offset + nbytes >= inodo.tamEnBytesLog) {
         nbytes = inodo.tamEnBytesLog - offset;
     }
 
-    // Calcular bloques lógicos y desplazamientos
-    primerBL = offset / BLOCKSIZE;
-    ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
-    desp1 = offset % BLOCKSIZE;
-    desp2 = (offset + nbytes - 1) % BLOCKSIZE;
+    unsigned int primerBL = offset / BLOCKSIZE;
+    unsigned int ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
+    unsigned int desp1 = offset % BLOCKSIZE;
+    unsigned int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
+    unsigned int bytes_leidos = 0;
+    char buf_bloque[BLOCKSIZE];
 
-    int bf;   // número de bloque físico, puede ser -1 (FALLO)
-
-    // CASO 1: toda la lectura cabe en un solo bloque
+    // Caso 1: un solo bloque
     if (primerBL == ultimoBL) {
-        bf = traducir_bloque_inodo(ninodo, primerBL, 0);  // reservar = 0
-        if (bf != FALLO) {
-            // Existe bloque físico: leerlo y copiar la parte correspondiente
-            if (bread(bf, buf_bloque) == FALLO) return FALLO;
-            memcpy((char *)buf_original, buf_bloque + desp1, nbytes);
-        }
-        // Si bf == FALLO, el bloque lógico no tiene asignado bloque físico,
-        // entonces se interpreta como ceros (no copiamos nada)
+        int nbfisico = traducir_bloque_inodo(ninodo, primerBL, 0);
+        if (nbfisico != FALLO) {
+            if (bread(nbfisico, buf_bloque) == FALLO) return FALLO;
+            memcpy(buf_original, buf_bloque + desp1, nbytes);
+        } // Si nbfisico == -1, el bloque no está asignado: se dejan ceros en buf_original (ya viene inicializado)
         bytes_leidos = nbytes;
     }
-    // CASO 2: lectura ocupa varios bloques
+    // Caso 2: varios bloques
     else {
-        // ---- PRIMER BLOQUE ----
-        bf = traducir_bloque_inodo(ninodo, primerBL, 0);
-        if (bf != FALLO) {
-            if (bread(bf, buf_bloque) == FALLO) return FALLO;
-            memcpy((char *)buf_original, buf_bloque + desp1, BLOCKSIZE - desp1);
+        // Primer bloque
+        int nbfisico = traducir_bloque_inodo(ninodo, primerBL, 0);
+        unsigned int bytes_primer = BLOCKSIZE - desp1;
+        if (nbfisico != FALLO) {
+            if (bread(nbfisico, buf_bloque) == FALLO) return FALLO;
+            memcpy(buf_original, buf_bloque + desp1, bytes_primer);
         }
-        bytes_leidos += BLOCKSIZE - desp1;
+        bytes_leidos += bytes_primer;
 
-        // ---- BLOQUES INTERMEDIOS (completos) ----
-        for (unsigned int i = primerBL + 1; i < ultimoBL; i++) {
-            bf = traducir_bloque_inodo(ninodo, i, 0);
-            if (bf != FALLO) {
-                if (bread(bf, buf_bloque) == FALLO) return FALLO;
+        // Bloques intermedios
+        for (unsigned int bl = primerBL + 1; bl < ultimoBL; bl++) {
+            nbfisico = traducir_bloque_inodo(ninodo, bl, 0);
+            if (nbfisico != FALLO) {
+                if (bread(nbfisico, buf_bloque) == FALLO) return FALLO;
                 memcpy((char *)buf_original + bytes_leidos, buf_bloque, BLOCKSIZE);
             }
-            // Siempre se suman BLOCKSIZE bytes, aunque el bloque no exista
             bytes_leidos += BLOCKSIZE;
         }
 
-        // ---- ÚLTIMO BLOQUE ----
-        bf = traducir_bloque_inodo(ninodo, ultimoBL, 0);
-        if (bf != FALLO) {
-            if (bread(bf, buf_bloque) == FALLO) return FALLO;
-            memcpy((char *)buf_original + bytes_leidos, buf_bloque, desp2 + 1);
+        // Último bloque
+        nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 0);
+        unsigned int bytes_ultimo = desp2 + 1;
+        if (nbfisico != FALLO) {
+            if (bread(nbfisico, buf_bloque) == FALLO) return FALLO;
+            memcpy((char *)buf_original + bytes_leidos, buf_bloque, bytes_ultimo);
         }
-        bytes_leidos += desp2 + 1;
+        bytes_leidos += bytes_ultimo;
     }
 
-    // Actualizar atime (tiempo de último acceso)
-    inodo.atime = time(NULL);
+    // Actualizar atime
+    time_t ahora = time(NULL);
+    inodo.atime = ahora;
     if (escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
 
     return bytes_leidos;
