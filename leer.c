@@ -17,9 +17,11 @@ int main(int argc, char **argv){
         return FALLO;
     }
     leidos = mi_read_f(atoi(argv[2]), buffer, offset, tambuffer);
+    offset += tambuffer;
     printf("%s\n", buffer);
     while(leidos > 0){
         leidos = mi_read_f(atoi(argv[2]), buffer, offset, tambuffer);
+        offset += tambuffer;
         printf("%s\n", buffer);
     }
     printf("total_leidos");
