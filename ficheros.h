@@ -1,5 +1,5 @@
 #include <time.h>
-#include "ficheros_basicos.h"
+#include "ficheros_basico.h"
 #include <limits.h>
 
 struct STAT {
