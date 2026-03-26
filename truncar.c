@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "ficheros_basico.h"
+#include "ficheros.h"
 
 int main(int argc, char **argv){
      

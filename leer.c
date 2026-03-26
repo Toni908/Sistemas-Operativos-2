@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "ficheros_basico.h"
+#include "ficheros.h"
 
 // para los tests y que de problemitas, adelaida lo comento
 // porque si es 1024, es facilito, tenemos que demostrar que con cualquier

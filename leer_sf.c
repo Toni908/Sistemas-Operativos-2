@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include "ficheros_basico.h"
+#include "ficheros.h"
 
 
 #define NIVEL2 0
