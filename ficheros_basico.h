@@ -65,22 +65,6 @@ struct inodo {     // comprobar que ocupa 128 bytes haciendo un sizeof(inodo)!!!
    // Fijarse que también se resta lo que ocupen las variables de alineación utilizadas!!!
 };
 
-struct STAT {
-    unsigned char tipo;       // Tipo ('l','d','f')
-    unsigned char permisos;   // Permisos
-
-    unsigned char reservado_alineacion1[6]; // tengo que mirarlo
-
-    time_t atime;  // último acceso
-    time_t mtime;  // última modificación contenido
-    time_t ctime;  // última modificación del inodo
-    time_t btime;  // creación
-
-    unsigned int nlinks;             // enlaces
-    unsigned int tamEnBytesLog;      // tamaño lógico
-    unsigned int numBloquesOcupados; // bloques ocupados
-};
-
 //Nivel 2
 int tamMB(unsigned int nbloques);
 int tamAI(unsigned int ninodos);
@@ -102,15 +86,8 @@ int obtener_nRangoBL (struct inodo *inodo,unsigned int nblogico, unsigned int *p
 int obtener_indice (unsigned int nblogico, int nivel_punteros);
 int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned char reservar);
 
-//Nivel 5
-int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes);
-int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes);
-int mi_stat_f(unsigned int ninodo, struct STAT *p_stat);
-int mi_chmod_f(unsigned int ninodo, unsigned char permisos);
-
 //Nivel 6
 int liberar_inodo(unsigned int ninodo);
 int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo);
 int liberar_directos (unsigned int *nBL, unsigned int ultimoBL,struct inodo *inodo, int *eof);
 int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsigned int ultimoBL, struct inodo *inodo, int nRangoBL, unsigned int nivel_punteros, unsigned int *ptr, int *eof);
-int mi_truncar_f(unsigned int ninodo, unsigned int nbytes);

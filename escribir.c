@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "ficheros_basico.h"
+#include "ficheros.h"
 #include <unistd.h>  // Para la llamada al sistema write() //BORRAR
 
 int main(int argc, char **argv){
