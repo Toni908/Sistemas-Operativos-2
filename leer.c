@@ -50,10 +50,11 @@ int main(int argc, char **argv){
         bumount();
         return FALLO;
     }
-    
-    fprintf(stderr, "total_leidos %d\n", total_leidos);
-    fprintf(stderr, "tamEnBytesLog %d\n", stat.tamEnBytesLog);
-    
+    printf("\n");
+    printf("total_leidos ");
+    printf(CYAN"%d\n"RESET, total_leidos);
+    printf("tamEnBytesLog ");
+    printf(CYAN"%d\n"RESET,stat.tamEnBytesLog);
     bumount();
     
     return EXITO;

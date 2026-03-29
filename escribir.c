@@ -23,6 +23,7 @@ int main(int argc, char **argv){
     }
 
     printf("Longitud del texto %ld\n", strlen(argv[2]));
+    printf("\n");
 
     if(atoi(argv[3]) == 0){ //caso de que se reserva un inodo para todos los offsets
         unsigned int ninodo = reservar_inodo('f',6);
@@ -30,43 +31,26 @@ int main(int argc, char **argv){
             printf("Numero de inodo reservado: 1\n");
             printf("Offset: %d\n", offsets[i]);
             int bytes_escritos = mi_write_f(ninodo, argv[2], offsets[i], strlen(argv[2]));
-            // ==========================================================
-            // --- INICIO CÓDIGO DE PRUEBA ---
-            // ==========================================================
-            int longitud = strlen(argv[2]); // <-- AQUÍ DEFINIMOS LONGITUD
-            char buffer_test[longitud];
-            memset(buffer_test, 0, longitud);
-            int bytes_leidos = mi_read_f(ninodo, buffer_test, offsets[i], longitud);
-            // 2. Comprobamos la lectura
-            printf("--- DEBUG --- bytes_leidos: %d\n", bytes_escritos);
-            fflush(stdout);
-            write(1, buffer_test, bytes_leidos);
-            printf("\n"); // Salto de línea
-            // ==========================================================
-            // --- FIN CÓDIGO DE PRUEBA ---
-            // ==========================================================
             mi_stat_f(ninodo, &stat);
             printf("Bytes escritos: %ld\n", strlen(argv[2]));
             printf("stat.tamEnBytesLog = %d\n", stat.tamEnBytesLog);
             printf("stat.numBloquesOcupados = %d\n", stat.numBloquesOcupados);
+            printf("\n");
         }
     }else{
         for(int i = 0; i < num_offsets; i++){
-            printf("Numero de inodo reservado: %d\n", i+1);
-            printf("Offset: %d\n", offsets[i]);
             unsigned int ninodo = reservar_inodo('f',6);
+            printf("Numero de inodo reservado: %d\n", ninodo);
+            printf("Offset: %d\n", offsets[i]);
             mi_write_f(ninodo, argv[2], offsets[i], strlen(argv[2]));
             mi_stat_f(ninodo, &stat);
             printf("Bytes escritos: %ld\n", strlen(argv[2]));
             printf("stat.tamEnBytesLog = %d\n", stat.tamEnBytesLog);
             printf("stat.numBloquesOcupados = %d\n", stat.numBloquesOcupados);
+            printf("\n");
         }
     }
     bumount();  //desmontamos el dispostivo virtual
 
     return EXITO;
 }
-//hay un fallo con el offset 480000000 imprime uno de mas
-//falla en el stat de numero de bloques ocupados
-//realmente como se cual es numero de inodo reservado
-//fallo tocho leyendo, no lee. :(
