@@ -612,19 +612,6 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
     
     if (memcmp(bloquePunteros, bufferCeros, BLOCKSIZE) == 0) {
         #if DEBUG && NIVEL6
-            // Calcular cuántos bloques lógicos nos saltamos
-            int bloques_saltados = 0;
-            if (nivel_punteros == 1) {
-                bloques_saltados = 1;
-            } else if (nivel_punteros == 2) {
-                bloques_saltados = NPUNTEROS;
-            } else if (nivel_punteros == 3) {
-                bloques_saltados = NPUNTEROS * NPUNTEROS;
-            }
-            
-            fprintf(stderr, "[liberar_bloques_inodo()→ Saltamos del BL %d al BL %d]\n", 
-                    *nBL - bloques_saltados, *nBL - 1);
-            
             if (nivel_punteros == 1) {
                 fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel1 correspondiente al BL %d]\n", 
                         *ptr, BLliberado);
