@@ -28,7 +28,7 @@ int main(int argc, char **argv){
     if(atoi(argv[3]) == 0){ //caso de que se reserva un inodo para todos los offsets
         unsigned int ninodo = reservar_inodo('f',6);
         for(int i = 0; i < num_offsets; i++){
-            printf("Numero de inodo reservado: 1\n");
+            printf("Nº de inodo reservado: 1\n");
             printf("Offset: %d\n", offsets[i]);
             /*int bytes_escritos = */ mi_write_f(ninodo, argv[2], offsets[i], strlen(argv[2]));
             mi_stat_f(ninodo, &stat);
@@ -40,7 +40,7 @@ int main(int argc, char **argv){
     }else{
         for(int i = 0; i < num_offsets; i++){
             unsigned int ninodo = reservar_inodo('f',6);
-            printf("Numero de inodo reservado: %d\n", ninodo);
+            printf("Nº de inodo reservado: %d\n", ninodo);
             printf("Offset: %d\n", offsets[i]);
             mi_write_f(ninodo, argv[2], offsets[i], strlen(argv[2]));
             mi_stat_f(ninodo, &stat);

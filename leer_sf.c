@@ -226,6 +226,10 @@ int main(int argc, char **argv){
         printf("\nSB.posPrimerInodoLibre = %u\n", SB.posPrimerInodoLibre);
     #endif
 
+    #if NIVEL5
+        leer_superbloque();
+    #endif
+
     bumount();
     return EXITO;
 }

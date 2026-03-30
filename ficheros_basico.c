@@ -2,7 +2,7 @@
 
 #define NIVEL2 0
 #define NIVEL3 0
-#define NIVEL4 1
+#define NIVEL4 0
 #define NIVEL5 1
 #define NIVEL6 0
 
@@ -377,7 +377,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
             inodo.numBloquesOcupados++;
             inodo.ctime = time(NULL); 
             salvar_inodo = 1;
-            #if DEBUG && NIVEL4
+            #if DEBUG && (NIVEL4 || NIVEL5)
                 printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosDirectos[%u] = %u (reservado BF %u para BL %u)]\n" RESET, nblogico, ptr, ptr, nblogico);
             #endif
         }
@@ -395,13 +395,13 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
 
                 if (nivel_punteros == nRangoBL){
                     inodo.punterosIndirectos[nRangoBL - 1] = ptr;
-                    #if DEBUG && NIVEL4
+                    #if DEBUG && (NIVEL4 || NIVEL5)
                         printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%d] = %u (reservado BF %u para punteros_nivel%d)]\n" RESET, nRangoBL-1, ptr, ptr, nivel_punteros);
                     #endif
                 }else{
                     buffer[indice] = ptr;
                     bwrite(ptr_ant, buffer);
-                    #if DEBUG && NIVEL4
+                    #if DEBUG && (NIVEL4 || NIVEL5)
                         printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel%d [%d] = %u (reservado BF %u para punteros_nivel%u)]\n" RESET, nivel_punteros+1, indice, ptr, ptr, nivel_punteros);
                     #endif
                 }
@@ -430,7 +430,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
             buffer[indice] = ptr;
             if(bwrite(ptr_ant, buffer) == FALLO) return FALLO;
             
-            #if DEBUG && NIVEL4
+            #if DEBUG && (NIVEL4 || NIVEL5)
                 printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel1 [%d] = %u (reservado BF %u para BL %u)]\n" RESET, indice, ptr, ptr, nblogico);
             #endif
         }
