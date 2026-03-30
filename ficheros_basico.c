@@ -464,9 +464,13 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
     } else {
         ultimoBL = inodo->tamEnBytesLog / BLOCKSIZE;
     }
+
+    if(primerBL > ultimoBL){
+        return 0;
+    }
     
     #if DEBUG && NIVEL6
-        fprintf(stderr, "[liberar_bloques_inodo()→ primer BL: %d, último BL: %d]\n", primerBL, ultimoBL);
+        fprintf(stderr, "[liberar_bloques_inodo()→ primer BL: %u, último BL: %u]\n", primerBL, ultimoBL);
     #endif
     
     // directos
@@ -478,8 +482,12 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
     // indirectos
     while(!eof){
         nRangoBL = obtener_nRangoBL(inodo, nBL, &ptr);
+        if(nRangoBL == FALLO){
+            eof = 1;
+            break;
+        }
         nivel_punteros = nRangoBL;
-        liberados = liberados + liberar_indirectos_recursivo(&nBL, primerBL, ultimoBL, inodo, nRangoBL, nivel_punteros, &ptr, &eof);
+        liberados += liberar_indirectos_recursivo(&nBL, primerBL, ultimoBL, inodo, nRangoBL, nivel_punteros, &ptr, &eof);
     }
     
     #if DEBUG && NIVEL6
@@ -495,7 +503,7 @@ int liberar_directos (unsigned int *nBL, unsigned int ultimoBL, struct inodo *in
     while (*nBL < DIRECTOS && !(*eof)) {
         if(inodo->punterosDirectos[*nBL] != 0 ){
             #if DEBUG && NIVEL6
-                fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de datos para BL %d]\n", 
+                fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %u de datos para BL %u]\n", 
                         inodo->punterosDirectos[*nBL], *nBL);
             #endif
             liberar_bloque(inodo->punterosDirectos[*nBL]);
@@ -522,42 +530,37 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
     static int BLliberado = 0;
 
     if (*ptr == 0) {
+        unsigned int nBL_inicio = *nBL;
         switch (nRangoBL) {
             case 1:
                 *nBL = INDIRECTOS0;
-                #if DEBUG && NIVEL6
-                    fprintf(stderr, "[liberar_bloques_inodo()→ Saltamos del BL %d al BL %ld]\n", 
-                            primerBL, INDIRECTOS0);
-                #endif
                 break;
             case 2:
                 *nBL = INDIRECTOS1;
-                #if DEBUG && NIVEL6
-                    fprintf(stderr, "[liberar_bloques_inodo()→ Saltamos del BL %d al BL %ld]\n", 
-                            primerBL, INDIRECTOS1);
-                #endif
                 break;
             case 3:
                 *nBL = INDIRECTOS2;
-                #if DEBUG && NIVEL6
-                    fprintf(stderr, "[liberar_bloques_inodo()→ Saltamos del BL %d al BL %ld]\n", 
-                            primerBL, INDIRECTOS2);
-                #endif
                 break;
         }
+        if (*nBL > ultimoBL) {
+            *eof = 1;
+        }
+        #if DEBUG && NIVEL6
+            fprintf(stderr, "[liberar_bloques_inodo()→ Saltamos del BL %u al BL %u]\n",
+                    nBL_inicio, (*nBL > ultimoBL ? ultimoBL : *nBL - 1));
+        #endif
         return liberados;
     }
 
+    if (bread(*ptr, bloquePunteros) == FALLO) return FALLO;
     int indice_inicial = obtener_indice(*nBL, nivel_punteros);
-    if (indice_inicial == 0 || *nBL == primerBL) {
-        if (bread(*ptr, bloquePunteros) == FALLO) return FALLO;
-    }
+    if (indice_inicial == FALLO) return FALLO;
 
     for (int i = indice_inicial; i < NPUNTEROS && !(*eof); i++) {
         if (bloquePunteros[i] != 0) {
             if (nivel_punteros == 1) {
                 #if DEBUG && NIVEL6
-                    fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de datos para BL %d]\n", 
+                    fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %u de datos para BL %u]\n", 
                             bloquePunteros[i], *nBL);
                     BLliberado = *nBL;
                 #endif
@@ -608,13 +611,13 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
     if (memcmp(bloquePunteros, bufferCeros, BLOCKSIZE) == 0) {
         #if DEBUG && NIVEL6
             if (nivel_punteros == 1) {
-                fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel1 correspondiente al BL %d]\n", 
+                fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %u de punteros_nivel1 correspondiente al BL %d]\n", 
                         *ptr, BLliberado);
             } else if (nivel_punteros == 2) {
-                fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel2 correspondiente al BL %d]\n", 
+                fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %u de punteros_nivel2 correspondiente al BL %d]\n", 
                         *ptr, BLliberado);
             } else if (nivel_punteros == 3) {
-                fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel3 correspondiente al BL %d]\n", 
+                fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %u de punteros_nivel3 correspondiente al BL %d]\n", 
                         *ptr, BLliberado);
             }
         #endif
@@ -623,7 +626,7 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
         liberados++;
     } else if (modificado == 1) {
         #if DEBUG && NIVEL6
-            fprintf(stderr, "[liberar_bloques_inodo()→ salvado BF %d de punteros_nivel%d correspondiente al BL %d]\n", 
+            fprintf(stderr, "[liberar_bloques_inodo()→ salvado BF %u de punteros_nivel%d correspondiente al BL %d]\n", 
                     *ptr, nivel_punteros, BLliberado);
         #endif
         bwrite(*ptr, bloquePunteros);
@@ -664,7 +667,7 @@ int liberar_inodo(unsigned int ninodo) {
     if (bwrite(posSB, &SB) == FALLO) return FALLO;
 
     #if DEBUG && NIVEL6
-        fprintf(stderr, "[liberar_inodo()→ Tras liberar inodo: primerInodoLibre = %d]\n", SB.posPrimerInodoLibre);
+        fprintf(stderr, "[liberar_inodo()→ Tras liberar inodo: primerInodoLibre = %u]\n", SB.posPrimerInodoLibre);
     #endif
 
     return ninodo;
