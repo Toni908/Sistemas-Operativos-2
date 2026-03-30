@@ -30,7 +30,7 @@ int main(int argc, char **argv){
         for(int i = 0; i < num_offsets; i++){
             printf("Numero de inodo reservado: 1\n");
             printf("Offset: %d\n", offsets[i]);
-            int bytes_escritos = mi_write_f(ninodo, argv[2], offsets[i], strlen(argv[2]));
+            /*int bytes_escritos = */ mi_write_f(ninodo, argv[2], offsets[i], strlen(argv[2]));
             mi_stat_f(ninodo, &stat);
             printf("Bytes escritos: %ld\n", strlen(argv[2]));
             printf("stat.tamEnBytesLog = %d\n", stat.tamEnBytesLog);
