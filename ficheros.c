@@ -203,5 +203,6 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     inodo.tamEnBytesLog = nbytes;
     inodo.numBloquesOcupados = inodo.numBloquesOcupados - liberados;
     escribir_inodo(ninodo, &inodo); //guardamos el inodo
+    
     return liberados;
 }

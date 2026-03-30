@@ -207,27 +207,22 @@ int main(int argc, char **argv){
 
     // Print de niveles
 
+    leer_superbloque();
+
     #if NIVEL2
-        leer_superbloque();
         print_inodos();
     #endif
 
     #if NIVEL3
-        leer_superbloque();
         prueba_reservar_liberar_bloque();
         mostrar_mapa_bits();
         mostrar_inodo_raiz();
     #endif
 
     #if NIVEL4
-        leer_superbloque();
         pruebaNivel4();
         if(bread(posSB, &SB) == FALLO) return FALLO;
         printf("\nSB.posPrimerInodoLibre = %u\n", SB.posPrimerInodoLibre);
-    #endif
-
-    #if NIVEL5
-        leer_superbloque();
     #endif
 
     bumount();
