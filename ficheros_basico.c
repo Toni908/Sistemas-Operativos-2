@@ -499,14 +499,15 @@ int liberar_directos (unsigned int *nBL, unsigned int ultimoBL,struct inodo *ino
     
     return liberados;
 }
-
-int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsigned int ultimoBL, struct inodo *inodo, int nRangoBL, unsigned int nivel_punteros, unsigned int *ptr, int *eof){
+int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsigned int ultimoBL, 
+                                  struct inodo *inodo, int nRangoBL, unsigned int nivel_punteros, 
+                                  unsigned int *ptr, int *eof) {
     int liberados = 0;
     int modificado = 0;
     unsigned int bloquePunteros[NPUNTEROS];
     unsigned int bufferCeros[NPUNTEROS] = {0};
 
-    if(*ptr == 0){
+    if (*ptr == 0) {
         switch (nRangoBL) {
             case 1:
                 *nBL = INDIRECTOS0;
@@ -522,53 +523,63 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
     }
 
     int indice_inicial = obtener_indice(*nBL, nivel_punteros);
-    if(indice_inicial == 0 || *nBL == primerBL){
-        if(bread(*ptr, bloquePunteros) == FALLO) return FALLO;
+    if (indice_inicial == 0 || *nBL == primerBL) {
+        if (bread(*ptr, bloquePunteros) == FALLO) return FALLO;
     }
 
-    for(int i = indice_inicial; (i = NPUNTEROS -1) || (*eof); i++){
-        if(bloquePunteros[i] !=  0){
-            if(nivel_punteros == 1){
+    // CORREGIDO: Condición del bucle
+    for (int i = indice_inicial; i < NPUNTEROS && !(*eof); i++) {
+        if (bloquePunteros[i] != 0) {
+            if (nivel_punteros == 1) {
                 liberar_bloque(bloquePunteros[i]);
                 bloquePunteros[i] = 0;
                 modificado = 1;
                 liberados++;
                 *nBL = *nBL + 1;
-            }else{
+            } else {
                 unsigned int ptr_antes = bloquePunteros[i];
-                liberados = liberados + liberar_indirectos_recursivo(nBL, primerBL, ultimoBL, inodo, nRangoBL, nivel_punteros -1, &bloquePunteros[i], eof);
-                if(bloquePunteros[i] != ptr_antes){
+                liberados = liberados + liberar_indirectos_recursivo(nBL, primerBL, ultimoBL, 
+                                        inodo, nRangoBL, nivel_punteros - 1, &bloquePunteros[i], eof);
+                if (bloquePunteros[i] != ptr_antes) {
                     modificado = 1;
                 }
             }
-        }else{
+        } else {
+            // Cuando el puntero es 0, saltamos bloques lógicos
             switch (nivel_punteros) {
                 case 1:
-                    *nBL = *nBL +1;
+                    *nBL = *nBL + 1;
                     break;
                 case 2:
                     *nBL = *nBL + NPUNTEROS;
                     break;
                 case 3:
-                    *nBL = *nBL + NPUNTEROS*NPUNTEROS;
+                    *nBL = *nBL + NPUNTEROS * NPUNTEROS;
                     break;
             }
-        return liberados;
+            // CORREGIDO: No return aquí, continuar con el bucle
+            // Pero hay que verificar si ya pasamos ultimoBL
+            if (*nBL > ultimoBL) {
+                *eof = 1;
+            }
+            continue;  // Saltar al siguiente índice
         }
-        if(*nBL > ultimoBL){
+        
+        if (*nBL > ultimoBL) {
             *eof = 1;
         }
     }
-    if(memcmp(bloquePunteros, bufferCeros, BLOCKSIZE) == 0){
+    
+    if (memcmp(bloquePunteros, bufferCeros, BLOCKSIZE) == 0) {
         liberar_bloque(*ptr);
         *ptr = 0;
-        liberados ++;
-    }else if(modificado == 1){
+        liberados++;
+    } else if (modificado == 1) {
         bwrite(*ptr, bloquePunteros);
     }
+    
     return liberados;
 }
-
 
 int liberar_inodo(unsigned int ninodo) {
     struct inodo inodo;
@@ -577,23 +588,24 @@ int liberar_inodo(unsigned int ninodo) {
     // Leer el inodo
     if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
 
-    // liberar todos sus bloques
-    if (liberar_bloques_inodo(0, &inodo) == FALLO) return FALLO; // por hacer
+    // CORREGIDO: Guardar cantidad de bloques liberados
+    int liberados = liberar_bloques_inodo(0, &inodo);
+    if (liberados == FALLO) return FALLO;
 
-    // actualizar campos del inodo para hacerlo que no tiene na
+    // CORREGIDO: Actualizar campos del inodo
     inodo.tipo = 'l'; // libre
     inodo.tamEnBytesLog = 0;
-    inodo.numBloquesOcupados = 0;
+    inodo.numBloquesOcupados -= liberados;  // Deberia quedar 0
 
     // Leer superbloque
     if (bread(posSB, &SB) == FALLO) return FALLO;
 
-    // cambiar Inodos libres
+    // Actualizar lista de inodos libres
     inodo.punterosDirectos[0] = SB.posPrimerInodoLibre;
     SB.posPrimerInodoLibre = ninodo;
     SB.cantInodosLibres++;
 
-    // actualizar cambio de metadatos
+    // Actualizar ctime
     inodo.ctime = time(NULL);    
 
     // Escribir inodo y superbloque
@@ -602,4 +614,3 @@ int liberar_inodo(unsigned int ninodo) {
 
     return ninodo;
 }
-
