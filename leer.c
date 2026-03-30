@@ -1,61 +1,62 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+
 #include "ficheros.h"
 
-// para los tests y que de problemitas, adelaida lo comento
-// porque si es 1024, es facilito, tenemos que demostrar que con cualquier
-// buffer funciona
-#define tambuffer 1500 
+#define TAMBUFFER 1500  // puedes cambiarlo si quieres
 
-int main(int argc, char **argv){
-    unsigned int ninodo;
-    int offset = 0;
-    int leidos = 0;
-    int total_leidos = 0;
-    unsigned char buffer[tambuffer];
-    struct STAT stat;
+int main(int argc, char **argv) {
 
-    // Validación de sintaxis
-    if(argc != 3){
-        fprintf(stderr, RED "Sintaxis: leer <nombre_dispositivo> <ninodo>\n" RESET);
-        exit(-1);
-    }
-
-    if(bmount(argv[1]) == FALLO){
-        fprintf(stderr, RED "Error al montar el dispositivo\n" RESET);
+    if (argc != 3) {
+        fprintf(stderr, "Sintaxis: ./leer <nombre_dispositivo> <ninodo>\n");
         return FALLO;
     }
-    
-    ninodo = atoi(argv[2]);
-    
-    // Limpiar buffer antes de la primera lectura
-    memset(buffer, 0, tambuffer);
-    leidos = mi_read_f(ninodo, buffer, offset, tambuffer);
-    
-    while(leidos > 0){
-        write(1, buffer, leidos);  
-        total_leidos += leidos;
-        offset += tambuffer;
-        
-        // Limpiar buffer antes de cada lectura, por esto petaba
-        memset(buffer, 0, tambuffer);
-        leidos = mi_read_f(ninodo, buffer, offset, tambuffer);
+
+    char *nombre_dispositivo = argv[1];
+    unsigned int ninodo = atoi(argv[2]);
+
+    // Montar dispositivo
+    if (bmount(nombre_dispositivo) == FALLO) {
+        perror("Error al montar el dispositivo");
+        return FALLO;
     }
-    
-    // El arbol no me esta dejando ver el bosque?
-    if(mi_stat_f(ninodo, &stat) == FALLO){
-        fprintf(stderr, RED "Error al obtener estadísticas del inodo\n" RESET);
+
+    char buffer[TAMBUFFER];
+    int leidos = 0;
+    int total_leidos = 0;
+    unsigned int offset = 0;
+
+    // Leer bloque a bloque
+    memset(buffer, 0, TAMBUFFER);
+    leidos = mi_read_f(ninodo, buffer, offset, TAMBUFFER);
+
+    while (leidos > 0) {
+
+        // Escribir en stdout SOLO lo leído
+        write(1, buffer, leidos);
+
+        total_leidos += leidos;
+        offset += TAMBUFFER;
+
+        memset(buffer, 0, TAMBUFFER);
+        leidos = mi_read_f(ninodo, buffer, offset, TAMBUFFER);
+    }
+
+    // Obtener metadatos para mostrar tamEnBytesLog
+    struct STAT stat;
+    if (mi_stat_f(ninodo, &stat) == FALLO) {
         bumount();
         return FALLO;
     }
-    printf("\n");
-    printf("total_leidos ");
-    printf(CYAN"%d\n"RESET, total_leidos);
-    printf("tamEnBytesLog ");
-    printf(CYAN"%d\n"RESET,stat.tamEnBytesLog);
+
+    // Mostrar info por stderr (no contaminar salida)
+    char info[128];
+    sprintf(info, "\ntotal_leidos %d\ntamEnBytesLog %d\n",
+            total_leidos, stat.tamEnBytesLog);
+    write(2, info, strlen(info));
     bumount();
-    
-    return EXITO;
+
+    return 0;
 }
