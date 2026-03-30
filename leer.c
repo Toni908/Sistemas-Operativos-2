@@ -51,9 +51,11 @@ int main(int argc, char **argv) {
         return FALLO;
     }
 
-    // Mostrar info por stderr (no contaminar salida)
+    // Mostrar info por stderr (no contaminar salida) 
+    // esto se utiliza para que los stdr no salgan tarde, ya que imprimia pero al final
+    // asi que utilizamos el canal de error
     char info[128];
-    sprintf(info, "\ntotal_leidos %d\ntamEnBytesLog %d\n",
+    sprintf(info, RESET "\ntotal_leidos %d\ntamEnBytesLog %d\n",
             total_leidos, stat.tamEnBytesLog);
     write(2, info, strlen(info));
     bumount();
