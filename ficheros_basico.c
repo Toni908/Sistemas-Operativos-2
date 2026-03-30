@@ -519,7 +519,7 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
     int modificado = 0;
     unsigned int bloquePunteros[NPUNTEROS];
     unsigned int bufferCeros[NPUNTEROS] = {0};
-    static int BLliberado = 0;  // Para guardar el último BL liberado
+    static int BLliberado = 0;
 
     if (*ptr == 0) {
         switch (nRangoBL) {
@@ -575,33 +575,28 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
                 }
             }
         } else {
-            // Cuando el puntero es 0, saltamos bloques lógicos
-            int salto = 0;
-            switch (nivel_punteros) {
-                case 1:
-                    *nBL = *nBL + 1;
-                    salto = 1;
-                    break;
-                case 2:
-                    *nBL = *nBL + NPUNTEROS;
-                    salto = NPUNTEROS;
-                    break;
-                case 3:
-                    *nBL = *nBL + NPUNTEROS * NPUNTEROS;
-                    salto = NPUNTEROS * NPUNTEROS;
-                    break;
-            }
+            // Agrupamos saltos consecutivos de entradas a 0
+            int nBL_inicio = *nBL;
             
+            while (i < NPUNTEROS && bloquePunteros[i] == 0 && !(*eof)) {
+                switch (nivel_punteros) {
+                    case 1: *nBL = *nBL + 1; break;
+                    case 2: *nBL = *nBL + NPUNTEROS; break;
+                    case 3: *nBL = *nBL + NPUNTEROS * NPUNTEROS; break;
+                }
+                if (*nBL > ultimoBL) *eof = 1;
+                i++;
+            }
+
             #if DEBUG && NIVEL6
-                if (salto > 1 && *nBL <= ultimoBL) {
+                if (*nBL - 1 >= nBL_inicio && nBL_inicio <= ultimoBL) {
                     fprintf(stderr, "[liberar_bloques_inodo()→ Saltamos del BL %d al BL %d]\n", 
-                            *nBL - salto, *nBL - 1);
+                            nBL_inicio, *nBL - 1);
                 }
             #endif
-            
-            if (*nBL > ultimoBL) {
-                *eof = 1;
-            }
+
+            // Compensamos el i++ del for
+            i--;
             continue;
         }
         
