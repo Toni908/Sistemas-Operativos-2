@@ -4,6 +4,7 @@
 
 #define DEBUG 1
 
+// esto no esta nada bien (creo)
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
 
     // Comprobar que el camino empieza por '/'
