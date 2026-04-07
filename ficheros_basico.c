@@ -466,7 +466,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
     }
     
     #if DEBUG && NIVEL6
-        fprintf(stderr, "[liberar_bloques_inodo()→ primer BL: %d, último BL: %d]\n", primerBL, ultimoBL);
+        fprintf(stderr, GRAY "[liberar_bloques_inodo()→ primer BL: %d, último BL: %d]\n" RESET, primerBL, ultimoBL);
     #endif
     
     // directos
@@ -483,7 +483,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
     }
     
     #if DEBUG && NIVEL6
-        fprintf(stderr, "[liberar_bloques_inodo()→ total bloques liberados: %d]\n", liberados);
+        fprintf(stderr, GRAY "[liberar_bloques_inodo()→ total bloques liberados: %d]\n" RESET, liberados);
     #endif
     
     return liberados;
@@ -495,7 +495,7 @@ int liberar_directos (unsigned int *nBL, unsigned int ultimoBL, struct inodo *in
     while (*nBL < DIRECTOS && !(*eof)) {
         if(inodo->punterosDirectos[*nBL] != 0 ){
             #if DEBUG && NIVEL6
-                fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de datos para BL %d]\n", 
+                fprintf(stderr, GRAY "[liberar_bloques_inodo()→ liberado BF %d de datos para BL %d]\n" RESET, 
                         inodo->punterosDirectos[*nBL], *nBL);
             #endif
             liberar_bloque(inodo->punterosDirectos[*nBL]);
