@@ -548,7 +548,6 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
                 #endif
                 break;
         }
-        (*bread_p)++;
         return liberados;
     }
 
@@ -601,7 +600,6 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
                             nBL_inicio, *nBL - 1);
                 }
             #endif
-            (*bread_p)++;
             // Compensamos el i++ del for
             i--;
             continue;
@@ -625,8 +623,8 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
             printf(GRAY "[liberar_bloques_inodo()→ salvado BF %d de punteros_nivel%d correspondiente al BL %d]\n" RESET, 
                     *ptr, nivel_punteros, BLliberado);
         #endif
-        (*bwrite_p)++; // para debugear
         bwrite(*ptr, bloquePunteros);
+        (*bwrite_p)++; // para debugear
     }
     
     return liberados;
