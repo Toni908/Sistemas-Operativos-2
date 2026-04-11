@@ -527,26 +527,18 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
         switch (nRangoBL) {
             case 1:
                 *nBL = INDIRECTOS0;
-                #if DEBUG && NIVEL6
-                    printf( GRAY "[liberar_bloques_inodo()→ Saltamos del BL %d al BL %d]\n" RESET, 
-                                    primerBL, INDIRECTOS0);
-                #endif
                 break;
             case 2:
                 *nBL = INDIRECTOS1;
-                #if DEBUG && NIVEL6
-                    printf( GRAY "[liberar_bloques_inodo()→ Saltamos del BL %d al BL %d]\n" RESET, 
-                                    primerBL, INDIRECTOS1);
-                #endif
                 break;
             case 3:
                 *nBL = INDIRECTOS2;
-                #if DEBUG && NIVEL6
-                    printf( GRAY "[liberar_bloques_inodo()→ Saltamos del BL %d al BL %ld]\n" RESET, 
-                                    primerBL, INDIRECTOS2);
-                #endif
                 break;
         }
+        #if DEBUG && NIVEL6
+            printf( GRAY "[liberar_bloques_inodo()→ Saltamos del BL %d al BL %ld]\n" RESET, 
+                            primerBL, *nBL);
+        #endif
         bread_p++;
         return liberados;
     }
