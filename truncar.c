@@ -24,15 +24,15 @@ int main(int argc, char **argv){
         if(resultado == FALLO){
             fprintf(stderr, RED "Error al liberar el inodo %d\n" RESET, ninodo);
         } else {
-            printf("Inodo %d liberado correctamente\n", resultado);
+            /* printf("Inodo %d liberado correctamente\n", resultado); */
         }
     } else {
         resultado = mi_truncar_f(ninodo, nbytes);
         if(resultado == FALLO){
             fprintf(stderr, RED "Error al truncar el inodo %d a %d bytes\n" RESET, ninodo, nbytes);
         } else {
-            printf("Inodo %d truncado a %d bytes, se liberaron %d bloques\n", 
-                   ninodo, nbytes, resultado);
+            /* printf("Inodo %d truncado a %d bytes, se liberaron %d bloques\n", 
+                   ninodo, nbytes, resultado); */
         }
     }
 
