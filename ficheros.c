@@ -1,3 +1,4 @@
+//Antonio García Font y Maria Isabel Herrero Soteras  
 #include "ficheros.h"
 
 #define NIVEL5 1
@@ -5,7 +6,8 @@
 
 #define DEBUG 1
 
-int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){ // tendriamos que ver de gestionar errores de read memcpy etc?
+//Funcion que escribe el contenido procedente de un buffer de memoria en un fichero/directorio
+int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){
     struct inodo inodo;
     unsigned char buf_bloque[BLOCKSIZE];
     unsigned int primerBL, ultimoBL;
@@ -62,9 +64,6 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         bytes_escritos += desp2 + 1;
     }
 
-    // actualizar tamaño lógico (no estoy seguro de este, ya que puede dar el caso de que simplemente hemos reescrito algo escrito, entonces, no
-    // habra aumentado el tamaño en tamenBytesLog, por eso chqueamos el offset +nbytes, y por eso tenemos los bytes_escritos separados en lugar 
-    // de hacer offset + nbytes en el return, por la reescritura.)
     if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO; // volver a leer inodo para bloques modificados
 
     if (offset + nbytes > inodo.tamEnBytesLog){
@@ -77,7 +76,8 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     return bytes_escritos;
 }
 
-int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){ // lo mismo con los errores
+//Funcion que lee informacion de un fichero/directorio y la almacena en un buffer de memoria
+int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){ 
     struct inodo inodo;
     unsigned char buf_bloque[BLOCKSIZE];
     unsigned int primerBL, ultimoBL;
@@ -148,26 +148,28 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     return bytes_leidos;
 }
 
+//Funcion que devuelve la metainformacion de un fichero/directorio
 int mi_stat_f(unsigned int ninodo, struct STAT *p_stat){
     struct inodo inodo;
 
     if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
     
-    p_stat->tipo = inodo.tipo;
-    p_stat->permisos = inodo.permisos;
+    p_stat->tipo = inodo.tipo;          //tipo de inodo
+    p_stat->permisos = inodo.permisos;  //permisos
 
-    p_stat->atime = inodo.atime;
+    p_stat->atime = inodo.atime;        //timestamps
     p_stat->mtime = inodo.mtime;
     p_stat->ctime = inodo.ctime;
     p_stat->btime = inodo.btime;
 
-    p_stat->nlinks = inodo.nlinks;
-    p_stat->tamEnBytesLog = inodo.tamEnBytesLog;
-    p_stat->numBloquesOcupados = inodo.numBloquesOcupados;
+    p_stat->nlinks = inodo.nlinks;                          //cantidad de enlaces de entradas en directorio      
+    p_stat->tamEnBytesLog = inodo.tamEnBytesLog;            //tamaño en bytes lógicos
+    p_stat->numBloquesOcupados = inodo.numBloquesOcupados;  //cantidad de bloques ocupados en la zona de datos
 
     return EXITO;
 }
 
+//Funcion que cambia los permisos de un directorio/fichero
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
     struct inodo inodo;
     if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;

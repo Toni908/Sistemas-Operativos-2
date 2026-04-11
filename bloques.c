@@ -1,3 +1,4 @@
+//Antonio García Font y Maria Isabel Herrero Soteras  
 #include "bloques.h"
 
 static int descriptor = 0;

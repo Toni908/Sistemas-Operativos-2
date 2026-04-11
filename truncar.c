@@ -1,9 +1,11 @@
+//Antonio García Font y Maria Isabel Herrero Soteras
 #include <stdio.h>
 #include <stdlib.h>
 #include "ficheros.h"
 
 int main(int argc, char **argv){
      
+    //Comprobamos la sintaxis
     if(argc != 4){
         fprintf(stderr, RED "Sintaxis: truncar <nombre_dispositivo> <ninodo> <nbytes>\n" RESET);
         fprintf(stderr, "  nbytes = 0 : libera el inodo completo\n");
@@ -11,7 +13,7 @@ int main(int argc, char **argv){
         exit(-1);
     }
     
-    if(bmount(argv[1]) == FALLO){
+    if(bmount(argv[1]) == FALLO){ //Montamos el dispositivo virtual
         return FALLO;
     }
 
@@ -19,20 +21,15 @@ int main(int argc, char **argv){
     int nbytes = atoi(argv[3]);
     int resultado;
     
-    if(nbytes == 0){
+    if(nbytes == 0){ //si nbytes es igual a 0, liberamos el indodo
         resultado = liberar_inodo(ninodo);
         if(resultado == FALLO){
             fprintf(stderr, RED "Error al liberar el inodo %d\n" RESET, ninodo);
-        } else {
-            /* printf("Inodo %d liberado correctamente\n", resultado); */
         }
-    } else {
+    } else { //sino lo truncamos
         resultado = mi_truncar_f(ninodo, nbytes);
         if(resultado == FALLO){
             fprintf(stderr, RED "Error al truncar el inodo %d a %d bytes\n" RESET, ninodo, nbytes);
-        } else {
-            /* printf("Inodo %d truncado a %d bytes, se liberaron %d bloques\n", 
-                   ninodo, nbytes, resultado); */
         }
     }
 

@@ -1,3 +1,4 @@
+//Antonio García Font y Maria Isabel Herrero Soteras
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,10 +6,11 @@
 
 #include "ficheros.h"
 
-#define TAMBUFFER 1500  // puedes cambiarlo si quieres
+#define TAMBUFFER 1500  //parametro modificable
 
 int main(int argc, char **argv) {
 
+    //Comprobamos la sintaxis
     if (argc != 3) {
         fprintf(stderr, "Sintaxis: ./leer <nombre_dispositivo> <ninodo>\n");
         return FALLO;

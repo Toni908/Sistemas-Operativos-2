@@ -1,3 +1,4 @@
+//Antonio García Font y Maria Isabel Herrero Soteras  
 #include <time.h>
 #include "ficheros_basico.h"
 #include <limits.h>
