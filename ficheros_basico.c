@@ -555,6 +555,7 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
     int indice_inicial = obtener_indice(*nBL, nivel_punteros);
     if (indice_inicial == 0 || *nBL == primerBL) {
         if (bread(*ptr, bloquePunteros) == FALLO) return FALLO;
+        (*bread_p)++;
     }
 
     for (int i = indice_inicial; i < NPUNTEROS && !(*eof); i++) {
