@@ -455,8 +455,8 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
     int eof = 0;
 
     // esto es para el debug de bwrite y bread
-    unsigned int bread_p = 0;
-    unsigned int bwrite_p = 0;
+    int bread_p = 0;
+    int bwrite_p = 0;
 
     // fichero vacio
     if(inodo->tamEnBytesLog == 0){ 
