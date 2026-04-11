@@ -5,6 +5,7 @@
 #define NIVEL4 0
 #define NIVEL5 1
 #define NIVEL6 1
+#define ENTREGA1 1
 
 #define DEBUG 1
 
@@ -661,7 +662,7 @@ int liberar_inodo(unsigned int ninodo) {
     if (escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
     if (bwrite(posSB, &SB) == FALLO) return FALLO;
 
-    #if DEBUG && NIVEL6
+    #if (DEBUG && NIVEL6 && !ENTREGA1)
         printf(GRAY "[liberar_inodo()→ Tras liberar inodo: primerInodoLibre = %d]\n" RESET, SB.posPrimerInodoLibre);
     #endif
 
