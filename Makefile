@@ -1,3 +1,4 @@
+#//Antonio García Font y Maria Isabel Herrero Soteras  
 CC=gcc
 CFLAGS=-c -g -Wall -std=gnu17
 #LDFLAGS=-pthread

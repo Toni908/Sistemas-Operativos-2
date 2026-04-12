@@ -1,3 +1,4 @@
+//Antonio García Font y Maria Isabel Herrero Soteras  
 #include <stdio.h>
 #include "bloques.h"
 #include "ficheros_basico.h"
