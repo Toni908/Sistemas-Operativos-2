@@ -1,4 +1,5 @@
 //Antonio García Font y Maria Isabel Herrero Soteras  
+
 #include "directorios.h"
 
 #define NIVEL7 1
@@ -49,16 +50,16 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     struct inodo inodo_dir;
     struct superbloque SB;
     struct entrada buffer[BLOCKSIZE / sizeof(struct entrada)]; //array de las entradas que caben en un bloque
-    unsigned char inicial[sizeof(entrada.nombre)];
-    unsigned char final[strlen(camino_parcial)];
-    unsigned char tipo;
+    char inicial[sizeof(entrada.nombre)];
+    char final[strlen(camino_parcial)];
+    char tipo;
     int cant_entradas_inodo;
     int num_entrada_inodo;
     int offset = 0;
 
     bread(posSB, &SB);
 
-    if(camino_parcial == "/"){ //si es el directorio raiz
+    if(strcmp(camino_parcial,"/") == 0){ //si es el directorio raiz
         *p_inodo = SB.posInodoRaiz; //nuestra raiz siempre estara asociada con el inodo 0
         *p_entrada = 0;
         return EXITO;
@@ -88,19 +89,43 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     }
 
     if((inicial != entrada.nombre) && (num_entrada_inodo == cant_entradas_inodo)){
-        if(reservar == 0){
+        if(reservar == 0){ //modo consulta. Como no existe retornamos error
             return ERROR_NO_EXISTE_ENTRADA_CONSULTA;
-        }else if(reservar == 1){
-            if(inodo_dir.tipo == 'f'){
+        }else if(reservar == 1){ //Modo escritura. Creamos la entrada en el directorio referenciada por *p_inodo_dir
+            if(inodo_dir.tipo == 'f'){ //Si es fichero no permitir escritura
                 return ERROR_PERMISO_LECTURA;
             }else{
-                //CONTINUAR PROGRAMANDO A PARTIR DE AQUI
+                strcpy(entrada.nombre, inicial);
+                if(tipo == 'd'){
+                    if(strcmp(final, "/") == 0){
+                        entrada.ninodo = reservar_inodo('d', 6); //reservamos un inodo como directorio y lo asignamos a la entrada
+                    }else{ //no es el final de la ruta
+                        return ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO;
+                    }
+                }else{ //es un fichero
+                    entrada.ninodo = reservar_inodo('f', 6); //reservamos un inodo como fichero y lo asignamos a la entrada
+                }
+                if(mi_write_f(*p_inodo_dir, &entrada, inodo_dir.tamEnBytesLog, sizeof(struct entrada)) == FALLO){ //escribimos la entrada en el directorio padre 
+                    if(entrada.ninodo != -1){
+                        liberar_inodo(entrada.ninodo);
+                    }
+                    return FALLO;
+                }  
             }
         }
-
     }
-
-
+    if(strcmp(final, "/") == 0 || tipo == 'f'){
+        if((num_entrada_inodo < cant_entradas_inodo) && (reservar = 1)){ //modo escritura y la entrada ya existe
+            return ERROR_ENTRADA_YA_EXISTENTE;
+        }
+        //cortamos la recursividad
+        *p_inodo = entrada.ninodo;
+        *p_entrada = num_entrada_inodo;
+        return EXITO;
+    }else{
+        *p_inodo_dir = buffer[num_entrada_inodo].ninodo;
+        return buscar_entrada(final, p_inodo_dir, p_inodo, p_entrada, reservar, permisos);
+    }
 }
 
 //Funcion para mostrar los errores
