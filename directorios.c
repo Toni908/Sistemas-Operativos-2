@@ -9,39 +9,33 @@
 // esto no esta nada bien (creo)
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
 
-    // Comprobar que el camino empieza por '/'
+    char copiaCamino[60];
+
+    // 1. comprobar valido
     if (camino[0] != '/') {
-        return -1; // ERROR
+        return ERROR_CAMINO_INCORRECTO;
     }
 
-    // Si el camino es solo "/"
-    if (strcmp(camino, "/") == 0) {
-        strcpy(inicial, "/");
-        strcpy(final, "");
+    // 2. copiar camino
+    strcpy(copiaCamino, camino);
+
+    // 3. extraer inicial
+    strcpy(inicial, strtok(copiaCamino + 1, "/"));
+
+    // 4. extraer final
+    char *resto = strtok(NULL, "");
+
+    // 5. obtener tipo
+    if (camino[1 + strlen(inicial)] == '/') {
+        strcpy(final, "/");
+        if (resto != NULL) strcat(final, resto);
         *tipo = 'd';
+        return 1;
+    } else {
+        if (resto != NULL) strcpy(final, resto);
+        *tipo = 'f';
         return 0;
     }
-
-    // Buscar el siguiente '/'
-    const char *p = strchr(camino + 1, '/');
-
-    if (p == NULL) {
-        // No hay más '/', es el último componente (fichero)
-        strcpy(inicial, camino + 1);
-        strcpy(final, "");
-        *tipo = 'f';
-    } else {
-        // Hay más niveles (directorio)
-        int len = p - (camino + 1);
-
-        strncpy(inicial, camino + 1, len);
-        inicial[len] = '\0';
-
-        strcpy(final, p);
-        *tipo = 'd';
-    }
-
-    return 0;
 }
 
 int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos){
