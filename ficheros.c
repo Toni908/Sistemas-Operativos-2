@@ -1,7 +1,7 @@
 //Antonio García Font y Maria Isabel Herrero Soteras  
 #include "ficheros.h"
 
-#define NIVEL5 1
+#define NIVEL5 0
 #define NIVEL6 0
 
 #define DEBUG 1

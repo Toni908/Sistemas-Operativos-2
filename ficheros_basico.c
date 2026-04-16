@@ -4,8 +4,8 @@
 #define NIVEL2 0
 #define NIVEL3 0
 #define NIVEL4 0
-#define NIVEL5 1
-#define NIVEL6 1
+#define NIVEL5 0
+#define NIVEL6 0
 #define ENTREGA1 1
 
 #define DEBUG 1
