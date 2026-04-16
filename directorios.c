@@ -48,7 +48,6 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir,
     struct inodo inodo_dir;
     struct entrada entradas[BLOCKSIZE / sizeof(struct entrada)];
     int cant_entradas_inodo, num_entrada_inodo = 0;
-    int error;
     
     // Caso: directorio raíz
     if (strcmp(camino_parcial, "/") == 0) {
