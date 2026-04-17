@@ -15,7 +15,7 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
 
     strcpy(inicial, strtok(copiaCamino + 1, "/"));
 
-    char *resto = strtok(NULL, "");
+    char *resto = strtok(NULL, "/");
 
     if (camino[1 + strlen(inicial)] == '/') {
         strcpy(final, "/");
@@ -23,7 +23,11 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
         *tipo = 'd';
         return 1;
     } else {
-        if (resto != NULL) strcpy(final, resto);
+        if (resto != NULL) {
+            strcpy(final, resto);
+        } else {
+            strcpy(final, "");  // ← ESTO ES LO IMPORTANTE
+        }
         *tipo = 'f';
         return 0;
     }
