@@ -529,7 +529,10 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
     int modificado = 0; // Flag para saber si el bloque ha cambiado
     unsigned int bloquePunteros[NPUNTEROS];
     unsigned int bufferCeros[NPUNTEROS] = {0};
-    int BLliberado = 0;
+
+    #if DEBUG && NIVEL6
+        int BLliberado = 0;
+    #endif
 
     if (*ptr == 0) {
         switch (nRangoBL) {  // Saltos al valer 0 un puntero del inodo según nivel
