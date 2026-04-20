@@ -177,3 +177,20 @@ void mostrar_error_buscar_entrada(int error) {
    case ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO: fprintf(stderr, RED "Error: No es un directorio.\n" RESET); break;
    }
 }
+
+//La función, símplemente, hace de wrapper de la función buscar_entrada()
+int mi_creat(const char *camino, unsigned char permisos){
+    return buscar_entrada(camino, 0, 0, 0, 1, permisos);
+}
+
+int mi_dir(const char *camino, char *buffer, char tipo, char flag){
+    //Programar
+}
+
+int mi_chmod(const char *camino, unsigned char permisos){
+    //Programar
+}
+
+int mi_stat(const char *camino, struct STAT *p_stat){
+    //Programar
+}
