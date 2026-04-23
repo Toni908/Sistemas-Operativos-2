@@ -51,62 +51,48 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     int cant_entradas_inodo;
     int num_entrada_inodo = 0;
 
-    bread(posSB, &SB);
+    if(bread(posSB, &SB) == FALLO) return FALLO;
 
     // Caso raíz
     if (strcmp(camino_parcial, "/") == 0) {
         *p_inodo = SB.posInodoRaiz;
-        *p_entrada = 0;
+        *p_entrada = 0; // no se usara, valor dummy
         return EXITO;
     }
 
     // Extraer camino
-    if (extraer_camino(camino_parcial, inicial, final, &tipo) < 0) {
-        return ERROR_CAMINO_INCORRECTO;
-    }
+    if (extraer_camino(camino_parcial, inicial, final, &tipo) < 0) return ERROR_CAMINO_INCORRECTO;
 
     #if DEBUG
         printf(GRAY "[buscar_entrada()→ inicial: %s, final: %s, reservar: %d]\n" RESET, inicial, final, reservar);
     #endif
 
     // Leer inodo del directorio
-    if (leer_inodo(*p_inodo_dir, &inodo_dir) < 0) {
-        return ERROR_PERMISO_LECTURA;
-    }
+    if (leer_inodo(*p_inodo_dir, &inodo_dir) < 0) return ERROR_PERMISO_LECTURA;
 
-    // Comprobar permisos lectura
-    if (!(inodo_dir.permisos & 4)) {
-        return ERROR_PERMISO_LECTURA;
-    }
-    // Calcular número de entradas
+
+    // Comprobar permisos de lectura
+    if (!(inodo_dir.permisos & 4)) return ERROR_PERMISO_LECTURA;
+    
+    // Calcular número de entradas, pa saber hasta donde iterar
     cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada);
 
     // Buscar entrada
     while (num_entrada_inodo < cant_entradas_inodo) {
-        if (mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
-            return FALLO;
-        }
-        if (strcmp(inicial, entrada.nombre) == 0) {
-            break;
-        }
+        if (mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) < 0) return FALLO;
+        if (strcmp(inicial, entrada.nombre) == 0) break;
         num_entrada_inodo++;
     }
 
-    // Si no existe
+    // Si no existe el inodo y hay que crearlo
     if (num_entrada_inodo == cant_entradas_inodo) {
-        if (reservar == 0) {
-            return ERROR_NO_EXISTE_ENTRADA_CONSULTA;
-        }
+        if (reservar == 0) return ERROR_NO_EXISTE_ENTRADA_CONSULTA;
 
         // No se puede crear dentro de fichero
-        if (inodo_dir.tipo == 'f') {
-            return ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO;
-        }
+        if (inodo_dir.tipo == 'f') return ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO;
 
         // Permiso escritura
-        if (!(inodo_dir.permisos & 2)) {
-            return ERROR_PERMISO_ESCRITURA;
-        }
+        if (!(inodo_dir.permisos & 2)) return ERROR_PERMISO_ESCRITURA;
 
         // Crear entrada
         strcpy(entrada.nombre, inicial);
