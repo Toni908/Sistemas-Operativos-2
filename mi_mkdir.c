@@ -26,7 +26,8 @@ int main(int argc, char **argv){
     }
 
     int error = mi_creat(argv[3], permisos); 
-    if(error == FALLO){
+    fprintf("%d", error);
+    if(error <= FALLO){
         // Mostrar el error específico
         mostrar_error_buscar_entrada(error);
         bumount();
