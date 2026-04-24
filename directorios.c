@@ -206,9 +206,7 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag){
         return ERROR_PERMISO_LECTURA;
     }
 
-    // =========================
     // CASO FICHERO
-    // =========================
     if (inodo.tipo == 'f') {
 
         if (flag == 'l') {
@@ -249,10 +247,7 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag){
         return 1;
     }
 
-    // =========================
     // CASO DIRECTORIO
-    // =========================
-
     int cant_entradas = inodo.tamEnBytesLog / sizeof(struct entrada);
 
     if (flag == 'l' && cant_entradas > 0) {
