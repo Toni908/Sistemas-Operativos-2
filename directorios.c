@@ -252,6 +252,7 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag){
             return FALLO;
         }
         
+        // mjeora opcional tambien
         if(flag == 'l'){
             char tmp[TAMFILA];
             struct tm *tm_info;
@@ -292,7 +293,7 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag){
     return cant_entradas;
 }
 
-//Funcion que cambia los permisos de un fichero/directorio
+// Funcion que cambia los permisos de un fichero/directorio
 int mi_chmod(const char *camino, unsigned char permisos){
     struct superbloque SB;
     bread(posSB, &SB);
@@ -310,7 +311,7 @@ int mi_chmod(const char *camino, unsigned char permisos){
     return EXITO;
 }
 
-//Funcion que obtiene los stats de un fichero/directorio
+// Funcion que obtiene los stats de un fichero/directorio
 int mi_stat(const char *camino, struct STAT *p_stat){
     struct superbloque SB;
     bread(posSB, &SB);
@@ -319,7 +320,7 @@ int mi_stat(const char *camino, struct STAT *p_stat){
     unsigned int p_entrada = 0;
     int error;
 
-    if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) < 0){ //solo es necesario otorgar permisos de lectura
+    if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) < 0){ // solo es necesario otorgar permisos de lectura
         mostrar_error_buscar_entrada(error);
         return FALLO;
     }
