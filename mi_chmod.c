@@ -12,7 +12,7 @@ int main(int argc, char **argv){
         return FALLO;
     }
 
-    mi_chmod(atoi(argv[2]), argv[3]);
+    mi_chmod(argv[2], atoi(argv[3]));
 
     bumount();
 }
