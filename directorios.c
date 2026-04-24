@@ -166,7 +166,11 @@ void mostrar_error_buscar_entrada(int error) {
 
 //La función, símplemente, hace de wrapper de la función buscar_entrada()
 int mi_creat(const char *camino, unsigned char permisos){
-    return buscar_entrada(camino, 0, 0, 0, 1, permisos);
+    unsigned int p_inodo_dir = 0; // hay que meter una variable y pasarla como puntero no sirve solo con 0
+    unsigned int p_inodo = 0;
+    unsigned int p_entrada = 0;
+
+    return buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos);
 }
 
 //La funcion pone el contenido del directorio/fichero en un buffer de memoria

@@ -3,30 +3,33 @@
 int main(int argc, char **argv){
     
     //Comprobamos la sintaxis
-    if(argc != 3){
-        fprintf(stderr, RED "Sintaxis: ./mi_mkdir <nombre_dispositivo> <permisos> </ruta_directorio/>" RESET);
+    if(argc != 4){  // <--- Debe ser 4: ./mi_mkdir disco permisos /ruta/
+        fprintf(stderr, RED "Sintaxis: ./mi_mkdir <nombre_dispositivo> <permisos> </ruta_directorio/>\n" RESET);
         return FALLO;
     }
 
-     //Comprobamos si es un fichero
+    //Comprobamos si es un directorio (debe terminar en /)
     if(argv[3][strlen(argv[3]) - 1] != '/'){
-        fprintf(stderr, RED "Error, (poner mensaje adecuado)" RESET);
+        fprintf(stderr, RED "Error: la ruta debe terminar en '/' para crear un directorio\n" RESET);
         return FALLO;
     }
 
-    //Comprobamos los permisos
-    if(atoi(argv[2]) < 0 || atoi(argv[2]) < 0){
-        fprintf(stderr, RED "Error, (poner mensaje adecuado)" RESET);
+    //Comprobamos los permisos (rango 0-7)
+    int permisos = atoi(argv[2]);
+    if(permisos < 0 || permisos > 7){  // <--- Corregido
+        fprintf(stderr, RED "Error: modo inválido: <<%d>>\n" RESET, permisos);
         return FALLO;
     }
 
-    if(bmount(argv[1]) == FALLO){ // Disco virtual
+    if(bmount(argv[1]) == FALLO){
         return FALLO;
     }
 
-    if(mi_creat(argv[3], atoi(argv[2])) == FALLO){
+    if(mi_creat(argv[3], permisos) == FALLO){
+        bumount();
         return FALLO;
     }
 
     bumount();
+    return EXITO;
 }
