@@ -2,8 +2,8 @@
 
 int main(int argc, char **argv){
     
-    //Comprobamos la sintaxis
-    if(argc != 4){  // <--- Debe ser 4: ./mi_mkdir disco permisos /ruta/
+    //Comprobamos la sintaxis (maribel si tiene 4 entonces mal, no pruebes con el != 3)
+    if(argc != 4){  
         fprintf(stderr, RED "Sintaxis: ./mi_mkdir <nombre_dispositivo> <permisos> </ruta_directorio/>\n" RESET);
         return FALLO;
     }
@@ -16,7 +16,7 @@ int main(int argc, char **argv){
 
     //Comprobamos los permisos (rango 0-7)
     int permisos = atoi(argv[2]);
-    if(permisos < 0 || permisos > 7){  // <--- Corregido
+    if(permisos < 0 || permisos > 7){ 
         fprintf(stderr, RED "Error: modo inválido: <<%d>>\n" RESET, permisos);
         return FALLO;
     }
