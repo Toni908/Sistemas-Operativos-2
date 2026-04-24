@@ -3,16 +3,28 @@
 int main(int argc, char **argv){
 
     //Comprobamos la sintaxis
-    if(argc != 3){
-        fprintf(stderr, RED "Sintaxis: ./mi_chmod <nombre_dispositivo> <permisos> </ruta>" RESET);
+    if(argc != 4){
+        fprintf(stderr, RED "Sintaxis: ./mi_chmod <nombre_dispositivo> <permisos> </ruta>\n" RESET);
         return FALLO;
     }
 
-    if(bmount(argv[1]) == FALLO){ // Disco virtual
+    //Comprobamos los permisos (rango 0-7)
+    int permisos = atoi(argv[2]);
+    if(permisos < 0 || permisos > 7){
+        fprintf(stderr, RED "Error: modo inválido: <<%d>>\n" RESET, permisos);
         return FALLO;
     }
 
-    mi_chmod(argv[2], atoi(argv[3]));
+    if(bmount(argv[1]) == FALLO){
+        return FALLO;
+    }
+
+    // Llamar a mi_chmod con la ruta (argv[3]) y los permisos
+    if(mi_chmod(argv[3], permisos) == FALLO){
+        bumount();
+        return FALLO;
+    }
 
     bumount();
+    return EXITO;
 }

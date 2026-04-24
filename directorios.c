@@ -175,114 +175,96 @@ int mi_creat(const char *camino, unsigned char permisos){
 
 //La funcion pone el contenido del directorio/fichero en un buffer de memoria
 int mi_dir(const char *camino, char *buffer, char tipo, char flag){
-    unsigned int p_inodo_dir = 0;   // Inodo del directorio padre (se usa en buscar_entrada, empieza en raíz)
-    unsigned int p_inodo = 0;       // Inodo del fichero/directorio objetivo (resultado final de buscar_entrada)
-    unsigned int p_entrada = 0;     // Posición (índice) de la entrada dentro del directorio padre
-    struct inodo inodo;             // Inodo del camino indicado (el que quieres listar o consultar)
-    struct inodo inodo_aux;         // Inodo de cada entrada del directorio (para recorrer y mostrar info de cada una)
-    struct entrada entrada;         // Estructura que representa cada entrada (nombre + ninodo) dentro del directorio
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo = 0;
+    unsigned int p_entrada = 0;
+    struct inodo inodo;
+    struct entrada entrada;
     
     int error;
     buffer[0] = '\0';
-
+    
     // Buscar entrada
-    if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0)) < 0) {
+    if((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0)) < 0){
         return error;
     }
-
+    
     // Leer inodo
-    if (leer_inodo(p_inodo, &inodo) < 0) {
+    if(leer_inodo(p_inodo, &inodo) < 0){
         return FALLO;
     }
-
-    // Comprobar tipo con sintaxis
-    if (tipo == 'd' && inodo.tipo != 'd') {
-        fprintf(stderr, "Error: la sintaxis no concuerda con el tipo\n");
-        return FALLO;
-    }
-    if (tipo == 'f' && inodo.tipo != 'f') {
-        fprintf(stderr, "Error: la sintaxis no concuerda con el tipo\n");
-        return FALLO;
-    }
-
-    // Permiso lectura
-    if (!(inodo.permisos & 4)) {
+    
+    // Comprobar permisos de lectura
+    if(!(inodo.permisos & 4)){
         return ERROR_PERMISO_LECTURA;
     }
-
-    // CASO FICHERO
-    if (inodo.tipo == 'f') {
-
-        if (flag == 'l') {
-
-            char tmp[100];
-            struct tm *tm_info;
-
-            // tipo
-            sprintf(tmp, "%c\t", inodo.tipo);
-            strcat(buffer, tmp);
-
-            // permisos
-            strcat(buffer, (inodo.permisos & 4) ? "r" : "-");
-            strcat(buffer, (inodo.permisos & 2) ? "w" : "-");
-            strcat(buffer, (inodo.permisos & 1) ? "x\t" : "-\t");
-
-            // fecha
-            tm_info = localtime(&inodo.mtime);
-            sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d\t",
-                    tm_info->tm_year + 1900,
-                    tm_info->tm_mon + 1,
-                    tm_info->tm_mday,
-                    tm_info->tm_hour,
-                    tm_info->tm_min,
-                    tm_info->tm_sec);
-            strcat(buffer, tmp);
-
-            // tamaño
-            sprintf(tmp, "%d\t", inodo.tamEnBytesLog);
-            strcat(buffer, tmp);
-
-            // nombre
-            strcat(buffer, strrchr(camino, '/') + 1);
-            strcat(buffer, "\n");
-
-        }
-
+    
+    // Si es un fichero (mejora opcional)
+    if(inodo.tipo == 'f' && flag == 'l'){
+        struct tm *tm_info;
+        char tmp[TAMFILA];
+        
+        sprintf(tmp, "%c\t", inodo.tipo);
+        strcat(buffer, tmp);
+        
+        // permisos
+        strcat(buffer, (inodo.permisos & 4) ? "r" : "-");
+        strcat(buffer, (inodo.permisos & 2) ? "w" : "-");
+        strcat(buffer, (inodo.permisos & 1) ? "x\t" : "-\t");
+        
+        // fecha
+        tm_info = localtime(&inodo.mtime);
+        sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d\t",
+                tm_info->tm_year + 1900,
+                tm_info->tm_mon + 1,
+                tm_info->tm_mday,
+                tm_info->tm_hour,
+                tm_info->tm_min,
+                tm_info->tm_sec);
+        strcat(buffer, tmp);
+        
+        // tamaño
+        sprintf(tmp, "%d\t", inodo.tamEnBytesLog);
+        strcat(buffer, tmp);
+        
+        // nombre
+        strcat(buffer, strrchr(camino, '/') + 1);
+        strcat(buffer, "\n");
+        
         return 1;
     }
-
-    // CASO DIRECTORIO
+    
+    // Si es directorio
     int cant_entradas = inodo.tamEnBytesLog / sizeof(struct entrada);
-
-    if (flag == 'l' && cant_entradas > 0) {
+    struct inodo inodo_aux;
+    
+    if(flag == 'l' && cant_entradas > 0){
         strcat(buffer, "Tipo\tPermisos\tmTime\t\t\tTamaño\tNombre\n");
         strcat(buffer, "----------------------------------------------------------------\n");
     }
-
-    for (int i = 0; i < cant_entradas; i++) {
-
-        if (mi_read_f(p_inodo, &entrada, i * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
+    
+    for(int i = 0; i < cant_entradas; i++){
+        if(mi_read_f(p_inodo, &entrada, i * sizeof(struct entrada), sizeof(struct entrada)) < 0){
             return FALLO;
         }
-
-        if (leer_inodo(entrada.ninodo, &inodo_aux) < 0) {
+        
+        if(leer_inodo(entrada.ninodo, &inodo_aux) < 0){
             return FALLO;
         }
-
-        if (flag == 'l') {
-
-            char tmp[100];
+        
+        if(flag == 'l'){
+            char tmp[TAMFILA];
             struct tm *tm_info;
-
+            
             // tipo
             sprintf(tmp, "%c\t", inodo_aux.tipo);
             strcat(buffer, tmp);
-
+            
             // permisos
             strcat(buffer, (inodo_aux.permisos & 4) ? "r" : "-");
             strcat(buffer, (inodo_aux.permisos & 2) ? "w" : "-");
             strcat(buffer, (inodo_aux.permisos & 1) ? "x\t" : "-\t");
-
+            
             // fecha
             tm_info = localtime(&inodo_aux.mtime);
             sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d\t",
@@ -293,21 +275,20 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag){
                     tm_info->tm_min,
                     tm_info->tm_sec);
             strcat(buffer, tmp);
-
+            
             // tamaño
             sprintf(tmp, "%d\t", inodo_aux.tamEnBytesLog);
             strcat(buffer, tmp);
-
+            
             // nombre
             strcat(buffer, entrada.nombre);
             strcat(buffer, "\n");
-
         } else {
             strcat(buffer, entrada.nombre);
             strcat(buffer, "\t");
         }
     }
-
+    
     return cant_entradas;
 }
 
@@ -318,11 +299,13 @@ int mi_chmod(const char *camino, unsigned char permisos){
     unsigned int p_inodo_dir, p_inodo;
     p_inodo_dir = p_inodo = SB.posInodoRaiz;
     unsigned int p_entrada = 0;
+
     int error;
     if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, permisos)) < 0){
         mostrar_error_buscar_entrada(error);
         return FALLO;
     }
+
     mi_chmod_f(p_inodo, permisos);
     return EXITO;
 }
@@ -335,10 +318,12 @@ int mi_stat(const char *camino, struct STAT *p_stat){
     p_inodo_dir = p_inodo = SB.posInodoRaiz;
     unsigned int p_entrada = 0;
     int error;
+
     if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) < 0){ //solo es necesario otorgar permisos de lectura
         mostrar_error_buscar_entrada(error);
         return FALLO;
     }
+    
     mi_stat_f(p_inodo, p_stat);
     return p_inodo;
 }

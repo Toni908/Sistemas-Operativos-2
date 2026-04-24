@@ -1,21 +1,67 @@
 #include "directorios.h"
 
-#define TAMFILA 100
-#define TAMBUFFER (TAMFILA*1000) //suponemos un máx de 1000 entradas, aunque debería ser SB.totInodos
-
 int main(int argc, char **argv){
     
-    //Comprobamos la sintaxis
-    if(argc != 3){
-        fprintf(stderr, RED "Poner el error sintaxis" RESET);
+    char buffer[TAMBUFFER];
+    char *ruta;
+    char flag = 0;  // 0 = simple, 'l' = extendido
+    int total = 0;
+    
+    // Comprobamos la sintaxis
+    if(argc < 3 || argc > 4){
+        fprintf(stderr, RED "Sintaxis: ./mi_ls <disco> </ruta>  o  ./mi_ls -l <disco> </ruta>\n" RESET);
         return FALLO;
     }
-
-    if(bmount(argv[1]) == FALLO){ // Disco virtual
+    
+    // Parsear argumentos
+    if(argc == 4){
+        // Formato: ./mi_ls -l disco /ruta
+        if(strcmp(argv[1], "-l") != 0){
+            fprintf(stderr, RED "Error: opción no válida. Use -l para listado extendido.\n" RESET);
+            return FALLO;
+        }
+        flag = 'l';
+        ruta = argv[3];
+        
+        if(bmount(argv[2]) == FALLO){
+            return FALLO;
+        }
+    } else {
+        // Formato: ./mi_ls disco /ruta
+        ruta = argv[2];
+        
+        if(bmount(argv[1]) == FALLO){
+            return FALLO;
+        }
+    }
+    
+    // Llamar a mi_dir() según el formato
+    buffer[0] = '\0';
+    total = mi_dir(ruta, buffer, 'd', flag);  // 'd' porque siempre listamos directorios
+    
+    if(total < 0){
+        mostrar_error_buscar_entrada(total);
+        bumount();
         return FALLO;
     }
-
-    //...
-
+    
+    // Mostrar resultados
+    if(flag == 'l'){
+        // El buffer ya viene con el formato extendido desde mi_dir()
+        printf("%s", buffer);
+    } else {
+        // Formato simple: mostrar nombres separados por espacios
+        printf("Total: %d\n", total);
+        
+        // Imprimir los nombres (vienen separados por tabuladores en el buffer)
+        char *token = strtok(buffer, "\t");
+        while(token != NULL){
+            printf("%s  ", token);
+            token = strtok(NULL, "\t");
+        }
+        printf("\n");
+    }
+    
     bumount();
+    return EXITO;
 }

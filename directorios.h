@@ -3,6 +3,10 @@
 
 #define TAMNOMBRE 60 //tamaño del nombre de directorio o fichero, en Ext2 = 256
 
+// lo definimos para imprimir en ls, define el tamaño de fila y el buffer de de la linea
+#define TAMFILA 100
+#define TAMBUFFER (TAMFILA*1000) //suponemos un máx de 1000 entradas
+
 //Definimos los errores que puede haber
 #define ERROR_CAMINO_INCORRECTO (-2)
 #define ERROR_PERMISO_LECTURA (-3)
