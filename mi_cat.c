@@ -11,7 +11,7 @@ int main(int argc, char **argv){
     }
 
     //Comprobamos si es un fichero (NO debe terminar en '/')
-    if(argv[3][strlen(argv[3]) - 1] == '/'){
+    if(argv[2][strlen(argv[2]) - 1] == '/'){
         fprintf(stderr, RED "Error: la ruta no debe terminar en '/' para crear un fichero\n" RESET);
         return FALLO;
     }
