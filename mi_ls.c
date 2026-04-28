@@ -47,13 +47,11 @@ int main(int argc, char **argv){
     
     // Mostrar resultados
     if(flag == 'l'){
-        // El buffer ya viene con el formato extendido desde mi_dir()
+        printf("Total: %d\n", total);
         printf("%s", buffer);
     } else {
-        // Formato simple: mostrar nombres separados por espacios
         printf("Total: %d\n", total);
-        
-        // Imprimir los nombres (vienen separados por tabuladores en el buffer)
+
         char *token = strtok(buffer, "\t");
         while(token != NULL){
             printf("%s  ", token);

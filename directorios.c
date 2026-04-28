@@ -72,7 +72,12 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 
 
     // Comprobar permisos de lectura
-    if (!(inodo_dir.permisos & 4)) return ERROR_PERMISO_LECTURA;
+    if (!(inodo_dir.permisos & 4)) {
+        #if DEBUG
+            printf(GRAY "[buscar_entrada()→ El inodo %d no tiene permisos de lectura]\n" RESET, *p_inodo_dir);
+        #endif
+        return ERROR_PERMISO_LECTURA;
+    }
     
     // Calcular número de entradas, pa saber hasta donde iterar
     cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada);

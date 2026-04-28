@@ -26,7 +26,7 @@ int main(int argc, char **argv){
     }
 
     int error = mi_creat(argv[3], permisos);
-    if(error == FALLO){
+    if(error <= FALLO){
         mostrar_error_buscar_entrada(error);
         bumount();
         return FALLO;
