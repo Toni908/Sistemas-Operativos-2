@@ -47,9 +47,16 @@ int main(int argc, char **argv){
     
     // Mostrar resultados
     if(flag == 'l'){
-        printf("Total: %d\n", total);
+        // CAMBIO: Solo imprimimos el Total si la ruta termina en / (es un directorio)
+        // Si es un fichero individual (/ruta/fichero), el PDF muestra que NO sale el total.
+        if (ruta[strlen(ruta) - 1] == '/') {
+            printf("Total: %d\n", total);
+        }
+        
+        // Imprimimos el buffer (que ya contendrá la cabecera y los datos)
         printf("%s", buffer);
     } else {
+        // En listado simple, imprimimos el total y los nombres en una línea
         printf("Total: %d\n", total);
 
         char *token = strtok(buffer, "\t");

@@ -208,6 +208,10 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag){
     if(inodo.tipo == 'f' && flag == 'l'){
         struct tm *tm_info;
         char tmp[TAMFILA];
+
+        // Añadir cabecera al principio del buffer
+        strcat(buffer, "Tipo\tPermisos\tmTime\t\t\tTamaño\tNombre\n");
+        strcat(buffer, "----------------------------------------------------------------\n");
         
         sprintf(tmp, "%c\t", inodo.tipo);
         strcat(buffer, tmp);
