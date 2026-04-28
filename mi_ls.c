@@ -47,8 +47,6 @@ int main(int argc, char **argv){
     
     // Mostrar resultados
     if(flag == 'l'){
-        // CAMBIO: Solo imprimimos el Total si la ruta termina en / (es un directorio)
-        // Si es un fichero individual (/ruta/fichero), el PDF muestra que NO sale el total.
         if (ruta[strlen(ruta) - 1] == '/') {
             printf("Total: %d\n", total);
         }

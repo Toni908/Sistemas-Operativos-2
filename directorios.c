@@ -178,127 +178,126 @@ int mi_creat(const char *camino, unsigned char permisos){
     return buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos);
 }
 
-//La funcion pone el contenido del directorio/fichero en un buffer de memoria
-int mi_dir(const char *camino, char *buffer, char tipo, char flag){
+// La funcion pone el contenido del directorio/fichero en un buffer de memoria
+int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
     struct inodo inodo;
     struct entrada entrada;
-    
+    struct tm *tm_info;
+    char tmp[TAMFILA];
+    char tmp_nombre[TAMNOMBRE + 30]; // Espacio extra para los códigos de colores
+
     int error;
     buffer[0] = '\0';
-    
+
     // Buscar entrada
-    if((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0)) < 0){
+    if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0)) < 0) {
         return error;
     }
-    
+
     // Leer inodo
-    if(leer_inodo(p_inodo, &inodo) < 0){
+    if (leer_inodo(p_inodo, &inodo) < 0) {
         return FALLO;
     }
-    
+
     // Comprobar permisos de lectura
-    if(!(inodo.permisos & 4)){
+    if (!(inodo.permisos & 4)) {
         return ERROR_PERMISO_LECTURA;
     }
-    
-    // Si es un fichero (mejora opcional)
-    if(inodo.tipo == 'f' && flag == 'l'){
-        struct tm *tm_info;
-        char tmp[TAMFILA];
 
-        // Añadir cabecera al principio del buffer
+    // Si es listado extendido, añadimos la cabecera al principio
+    if (flag == 'l') {
         strcat(buffer, "Tipo\tPermisos\tmTime\t\t\tTamaño\tNombre\n");
         strcat(buffer, "----------------------------------------------------------------\n");
-        
-        sprintf(tmp, "%c\t", inodo.tipo);
-        strcat(buffer, tmp);
-        
-        // permisos
-        strcat(buffer, (inodo.permisos & 4) ? "r" : "-");
-        strcat(buffer, (inodo.permisos & 2) ? "w" : "-");
-        strcat(buffer, (inodo.permisos & 1) ? "x\t" : "-\t");
-        
-        // fecha
-        tm_info = localtime(&inodo.mtime);
-        sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d\t",
-                tm_info->tm_year + 1900,
-                tm_info->tm_mon + 1,
-                tm_info->tm_mday,
-                tm_info->tm_hour,
-                tm_info->tm_min,
-                tm_info->tm_sec);
-        strcat(buffer, tmp);
-        
-        // tamaño
-        sprintf(tmp, "%d\t", inodo.tamEnBytesLog);
-        strcat(buffer, tmp);
-        
-        // nombre
-        strcat(buffer, strrchr(camino, '/') + 1);
-        strcat(buffer, "\n");
-        
-        return 1;
     }
-    
-    // Si es directorio
+
+    // caso fichero
+    if (inodo.tipo == 'f') {
+        if (flag == 'l') {
+            sprintf(tmp, "%c\t", inodo.tipo);
+            strcat(buffer, tmp);
+
+            // Permisos
+            strcat(buffer, (inodo.permisos & 4) ? "r" : "-");
+            strcat(buffer, (inodo.permisos & 2) ? "w" : "-");
+            strcat(buffer, (inodo.permisos & 1) ? "x\t" : "-\t");
+
+            // Fecha (mTime)
+            tm_info = localtime(&inodo.mtime);
+            sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d\t",
+                    tm_info->tm_year + 1900, tm_info->tm_mon + 1, tm_info->tm_mday,
+                    tm_info->tm_hour, tm_info->tm_min, tm_info->tm_sec);
+            strcat(buffer, tmp);
+
+            // Tamaño
+            sprintf(tmp, "%d\t", inodo.tamEnBytesLog);
+            strcat(buffer, tmp);
+
+            // Nombre
+            sprintf(tmp_nombre, CYAN "%s" RESET "\n", strrchr(camino, '/') + 1);
+            strcat(buffer, tmp_nombre);
+        } else {
+            // Listado simple
+            sprintf(tmp_nombre, CYAN "%s" RESET "\t", strrchr(camino, '/') + 1);
+            strcat(buffer, tmp_nombre);
+        }
+        return 1; // Un solo fichero listado
+    }
+
+    // directorio: hay que listar su contenido
     int cant_entradas = inodo.tamEnBytesLog / sizeof(struct entrada);
     struct inodo inodo_aux;
-    
-    if(flag == 'l' && cant_entradas > 0){
-        strcat(buffer, "Tipo\tPermisos\tmTime\t\t\tTamaño\tNombre\n");
-        strcat(buffer, "----------------------------------------------------------------\n");
-    }
-    
-    for(int i = 0; i < cant_entradas; i++){
-        if(mi_read_f(p_inodo, &entrada, i * sizeof(struct entrada), sizeof(struct entrada)) < 0){
+
+    for (int i = 0; i < cant_entradas; i++) {
+        if (mi_read_f(p_inodo, &entrada, i * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
             return FALLO;
         }
-        
-        if(leer_inodo(entrada.ninodo, &inodo_aux) < 0){
+
+        if (leer_inodo(entrada.ninodo, &inodo_aux) < 0) {
             return FALLO;
         }
-        
-        // mjeora opcional tambien
-        if(flag == 'l'){
-            char tmp[TAMFILA];
-            struct tm *tm_info;
-            
-            // tipo
+
+        if (flag == 'l') {
+            // Tipo
             sprintf(tmp, "%c\t", inodo_aux.tipo);
             strcat(buffer, tmp);
-            
-            // permisos
+
+            // Permisos
             strcat(buffer, (inodo_aux.permisos & 4) ? "r" : "-");
             strcat(buffer, (inodo_aux.permisos & 2) ? "w" : "-");
             strcat(buffer, (inodo_aux.permisos & 1) ? "x\t" : "-\t");
-            
-            // fecha
+
+            // Fecha
             tm_info = localtime(&inodo_aux.mtime);
             sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d\t",
-                    tm_info->tm_year + 1900,
-                    tm_info->tm_mon + 1,
-                    tm_info->tm_mday,
-                    tm_info->tm_hour,
-                    tm_info->tm_min,
-                    tm_info->tm_sec);
+                    tm_info->tm_year + 1900, tm_info->tm_mon + 1, tm_info->tm_mday,
+                    tm_info->tm_hour, tm_info->tm_min, tm_info->tm_sec);
             strcat(buffer, tmp);
-            
-            // tamaño
+
+            // Tamaño
             sprintf(tmp, "%d\t", inodo_aux.tamEnBytesLog);
             strcat(buffer, tmp);
-            
-            // nombre
-            strcat(buffer, entrada.nombre);
-            strcat(buffer, "\n");
+
+            // Nombres
+            if (inodo_aux.tipo == 'd') {
+                sprintf(tmp_nombre, RED "%s" RESET "\n", entrada.nombre);
+            } else {
+                sprintf(tmp_nombre, CYAN "%s" RESET "\n", entrada.nombre);
+            }
+            strcat(buffer, tmp_nombre);
         } else {
-            strcat(buffer, entrada.nombre);
-            strcat(buffer, "\t");
+            // Listado simple
+            if (inodo_aux.tipo == 'd') {
+                sprintf(tmp_nombre, RED "%s" RESET "\t", entrada.nombre);
+            } else {
+                sprintf(tmp_nombre, CYAN "%s" RESET "\t", entrada.nombre);
+            }
+            strcat(buffer, tmp_nombre);
         }
     }
-    
+
     return cant_entradas;
 }
 
