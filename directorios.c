@@ -6,6 +6,9 @@
 
 #define DEBUG 1
 
+static struct UltimaEntrada UltimaEntradaEscritura;
+static struct UltimaEntrada UltimaEntradaLectura;
+
 // esto no esta nada bien (creo)
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
 
@@ -335,4 +338,64 @@ int mi_stat(const char *camino, struct STAT *p_stat){
     
     mi_stat_f(p_inodo, p_stat);
     return p_inodo;
+}
+
+// escribir contenido en un fichero
+int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes) {
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo = 0;
+    unsigned int p_entrada = 0;
+    int error;
+
+    // Comprobar si el camino coincide con la última entrada escrita (Caché)
+    if (strcmp(camino, UltimaEntradaEscritura.camino) == 0) {
+        p_inodo = UltimaEntradaEscritura.p_inodo;
+        #if DEBUG
+            printf(GRAY "[mi_write() → Utilizamos la caché de escritura]\n" RESET);
+        #endif
+    } else {
+        // Si no está en caché, buscamos el inodo con buscar_entrada()
+        if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0)) < 0) {
+            return error; // Devolvemos el error de buscar_entrada
+        }
+        // Actualizamos la caché de escritura
+        strcpy(UltimaEntradaEscritura.camino, camino);
+        UltimaEntradaEscritura.p_inodo = p_inodo;
+        #if DEBUG
+            printf(GRAY "[mi_write() → Actualizamos la caché de escritura]\n" RESET);
+        #endif
+    }
+
+    // Llamamos a la capa de ficheros para realizar la escritura física
+    return mi_write_f(p_inodo, buf, offset, nbytes);
+}
+
+// leer contenido de un fichero
+int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes) {
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo = 0;
+    unsigned int p_entrada = 0;
+    int error;
+
+    // Comprobar si el camino coincide con la última entrada leída (Caché)
+    if (strcmp(camino, UltimaEntradaLectura.camino) == 0) {
+        p_inodo = UltimaEntradaLectura.p_inodo;
+        #if DEBUG
+            printf(GRAY "[mi_read() → Utilizamos la caché de lectura]\n" RESET);
+        #endif
+    } else {
+        // Si no está en caché, buscamos el inodo con buscar_entrada()
+        if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0)) < 0) {
+            return error;
+        }
+        // Actualizamos la caché de lectura
+        strcpy(UltimaEntradaLectura.camino, camino);
+        UltimaEntradaLectura.p_inodo = p_inodo;
+        #if DEBUG
+            printf(GRAY "[mi_read() → Actualizamos la caché de lectura]\n" RESET);
+        #endif
+    }
+
+    // Llamamos a la capa de ficheros para realizar la lectura física
+    return mi_read_f(p_inodo, buf, offset, nbytes);
 }
