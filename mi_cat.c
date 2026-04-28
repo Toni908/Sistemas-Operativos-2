@@ -5,7 +5,7 @@
 int main(int argc, char **argv){
     
     // Comprobamos la sintaxis 
-    if(argc != 2){
+    if(argv[1] == NULL || argv[2] == NULL){
         fprintf(stderr, RED "Sintaxis: ./mi_cat <disco> </ruta_fichero>\n" RESET);
         return FALLO;
     }

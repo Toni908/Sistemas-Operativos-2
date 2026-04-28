@@ -3,7 +3,7 @@
 int main(int argc, char **argv){
     
     // Comprobamos la sintaxis
-    if(argc != 4){
+    if(argv[1] == NULL || argv[2] == NULL || argv[3] == NULL || argv[4] == NULL){
         fprintf(stderr, RED "Sintaxis: ./mi_escribir <disco> </ruta_fichero> <texto> <offset>\n" RESET);
         return FALLO;
     }
@@ -19,7 +19,8 @@ int main(int argc, char **argv){
     }
 
     int bytesEscritos = mi_write(argv[2], argv[3], atoi(argv[4]), strlen(argv[3]));
-
+    printf("Longitud del texto: %ld\n", strlen(argv[3]));
+    printf("Bytes escritos %d\n", bytesEscritos);
     bumount();
     return EXITO;
 }
