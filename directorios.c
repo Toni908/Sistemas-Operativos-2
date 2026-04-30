@@ -353,7 +353,7 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     if (strcmp(camino, UltimaEntradaEscritura.camino) == 0) {
         p_inodo = UltimaEntradaEscritura.p_inodo;
         #if (DEBUG && (NIVEL9))
-            printf(GRAY "[mi_write() → Utilizamos la caché de escritura]\n" RESET);
+            printf(GRAY "[mi_write() → Utilizamos la caché de escritura en vez de llamar a buscar_entrada()]\n" RESET);
         #endif
     } else {
         // Si no está en caché, buscamos el inodo con buscar_entrada()
@@ -383,7 +383,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     if (strcmp(camino, UltimaEntradaLectura.camino) == 0) {
         p_inodo = UltimaEntradaLectura.p_inodo;
         #if (DEBUG && (NIVEL9))
-            printf(GRAY "[mi_read() → Utilizamos la caché de lectura]\n" RESET);
+            printf(GRAY "[mi_read() → Utilizamos la caché de lectura en vez de llamar a buscar_entrada()]\n" RESET);
         #endif
     } else {
         // Si no está en caché, buscamos el inodo con buscar_entrada()
