@@ -1,7 +1,5 @@
 #include "directorios.h"
 
-#define TAMBUFFER 1500
-
 int main(int argc, char **argv){
     
     // Comprobamos la sintaxis 
@@ -21,7 +19,7 @@ int main(int argc, char **argv){
     }
 
     char buffer[TAMBUFFER];
-    int leidos = 0;
+    int leidos = 0; // hay qe poner que se imprima
     unsigned int offset = 0;
 
     // Leer bloque a bloque

@@ -2,7 +2,9 @@
 
 #include "directorios.h"
 
-#define NIVEL7 1
+#define NIVEL7 0
+#define NIVEL8 0
+#define NIVEL9 1
 
 #define DEBUG 1
 
@@ -66,7 +68,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     // Extraer camino
     if (extraer_camino(camino_parcial, inicial, final, &tipo) < 0) return ERROR_CAMINO_INCORRECTO;
 
-    #if DEBUG
+    #if (DEBUG && (NIVEL7 || NIVEL8)) 
         printf(GRAY "[buscar_entrada()→ inicial: %s, final: %s, reservar: %d]\n" RESET, inicial, final, reservar);
     #endif
 
@@ -76,7 +78,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 
     // Comprobar permisos de lectura
     if (!(inodo_dir.permisos & 4)) {
-        #if DEBUG
+        #if (DEBUG && (NIVEL7 || NIVEL8)) 
             printf(GRAY "[buscar_entrada()→ El inodo %d no tiene permisos de lectura]\n" RESET, *p_inodo_dir);
         #endif
         return ERROR_PERMISO_LECTURA;
@@ -111,12 +113,12 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
             }
             entrada.ninodo = reservar_inodo('d', permisos);
 
-            #if DEBUG
+            #if (DEBUG && (NIVEL7 || NIVEL8))
                 printf(GRAY "[buscar_entrada()→ reservado inodo %d tipo d con permisos %d para %s]\n" RESET, entrada.ninodo, permisos, inicial);
             #endif
         } else {
             entrada.ninodo = reservar_inodo('f', permisos);
-            #if DEBUG
+            #if (DEBUG && (NIVEL7 || NIVEL8))
                 printf(GRAY "[buscar_entrada()→ reservado inodo %d tipo f con permisos %d para %s]\n" RESET, entrada.ninodo, permisos, inicial);
             #endif
         }
@@ -129,7 +131,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
             return FALLO;
         }
 
-        #if DEBUG
+        #if (DEBUG && (NIVEL7 || NIVEL8))
             printf(GRAY "[buscar_entrada()→ creada entrada: %s, %d]\n" RESET, entrada.nombre, entrada.ninodo);
         #endif
     }
@@ -350,7 +352,7 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     // Comprobar si el camino coincide con la última entrada escrita (Caché)
     if (strcmp(camino, UltimaEntradaEscritura.camino) == 0) {
         p_inodo = UltimaEntradaEscritura.p_inodo;
-        #if DEBUG
+        #if (DEBUG && (NIVEL9))
             printf(GRAY "[mi_write() → Utilizamos la caché de escritura]\n" RESET);
         #endif
     } else {
@@ -361,7 +363,7 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
         // Actualizamos la caché de escritura
         strcpy(UltimaEntradaEscritura.camino, camino);
         UltimaEntradaEscritura.p_inodo = p_inodo;
-        #if DEBUG
+        #if (DEBUG && (NIVEL9))
             printf(GRAY "[mi_write() → Actualizamos la caché de escritura]\n" RESET);
         #endif
     }
@@ -380,7 +382,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     // Comprobar si el camino coincide con la última entrada leída (Caché)
     if (strcmp(camino, UltimaEntradaLectura.camino) == 0) {
         p_inodo = UltimaEntradaLectura.p_inodo;
-        #if DEBUG
+        #if (DEBUG && (NIVEL9))
             printf(GRAY "[mi_read() → Utilizamos la caché de lectura]\n" RESET);
         #endif
     } else {
@@ -391,7 +393,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
         // Actualizamos la caché de lectura
         strcpy(UltimaEntradaLectura.camino, camino);
         UltimaEntradaLectura.p_inodo = p_inodo;
-        #if DEBUG
+        #if (DEBUG && (NIVEL9))
             printf(GRAY "[mi_read() → Actualizamos la caché de lectura]\n" RESET);
         #endif
     }
