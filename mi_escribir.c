@@ -18,9 +18,9 @@ int main(int argc, char **argv){
         return FALLO;
     }
 
+    fprintf(stderr, "Longitud del texto: %ld\n", strlen(argv[3]));  
     int bytesEscritos = mi_write(argv[2], argv[3], atoi(argv[4]), strlen(argv[3]));
-    printf("Longitud del texto: %ld\n", strlen(argv[3]));
-    printf("Bytes escritos %d\n", bytesEscritos);
+    fprintf(stderr, "Bytes escritos: %d\n", (bytesEscritos < 0) ? 0 : bytesEscritos);
     bumount();
     return EXITO;
 }

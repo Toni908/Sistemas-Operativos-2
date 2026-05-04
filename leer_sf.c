@@ -10,7 +10,7 @@
 #define NIVEL4 0
 #define NIVEL5 0
 #define NIVEL6 0
-#define NIVEL7 1
+#define NIVEL7 0
 
 struct superbloque SB;
 
