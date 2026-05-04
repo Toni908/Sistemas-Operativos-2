@@ -16,6 +16,9 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
     if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
 
+    // Guardar bloques ocupados antes de escribir
+    unsigned int bloquesAntes = inodo.numBloquesOcupados;
+
     // comprobar permiso escritura
     if ((inodo.permisos & 2) != 2){
         printf(RED "Error: no hay permiso de escritura\n" RESET);
@@ -27,19 +30,19 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     desp1 = offset % BLOCKSIZE;
     desp2 = (offset + nbytes - 1) % BLOCKSIZE;
 
-    int bf; // Blque fisico
+    int bf;
 
     // Caso 1: todo en el mismo bloque
     if (primerBL == ultimoBL){
         bf = traducir_bloque_inodo(ninodo, primerBL, 1);
         if(bf == FALLO) return FALLO;
         bread(bf, buf_bloque);
-        memcpy(buf_bloque + desp1, buf_original, nbytes); // destino origen bytes
+        memcpy(buf_bloque + desp1, buf_original, nbytes);
         bwrite(bf, buf_bloque);
         bytes_escritos = nbytes;
     } 
-    else { // Caso 2:
-        // Primer Bloque (1024 - desp1 B)
+    else {
+        // Primer Bloque
         bf = traducir_bloque_inodo(ninodo, primerBL, 1);
         if(bf == FALLO) return FALLO;
         bread(bf, buf_bloque);
@@ -47,7 +50,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         bwrite(bf, buf_bloque);
         bytes_escritos += BLOCKSIZE - desp1;
 
-        // Bloques Intermedios (1024B)
+        // Bloques Intermedios
         for (unsigned int i = primerBL + 1; i < ultimoBL; i++){
             bf = traducir_bloque_inodo(ninodo, i, 1);
             if(bf == FALLO) return FALLO;
@@ -55,7 +58,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
             bytes_escritos += BLOCKSIZE;
         }
 
-        // Ultimo Bloque (despl2 +1 B, +1 porque se escribe el 0)
+        // Ultimo Bloque
         bf = traducir_bloque_inodo(ninodo, ultimoBL, 1);
         if(bf == FALLO) return FALLO;
         bread(bf, buf_bloque);
@@ -64,14 +67,18 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         bytes_escritos += desp2 + 1;
     }
 
-    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO; // volver a leer inodo para bloques modificados
+    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
 
     if (offset + nbytes > inodo.tamEnBytesLog){
         inodo.tamEnBytesLog = offset + nbytes;
     }
 
-    inodo.ctime = time(NULL); // ultima data de update del inodo
-    inodo.mtime = time(NULL); // ultima data de update de los datos del inodo
+    inodo.mtime = time(NULL);
+
+    if (inodo.numBloquesOcupados > bloquesAntes){
+        inodo.ctime = time(NULL);
+    }
+
     if(escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
     return bytes_escritos;
 }
