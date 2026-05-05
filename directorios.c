@@ -383,7 +383,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     if (strcmp(camino, UltimaEntradaLectura.camino) == 0) {
         p_inodo = UltimaEntradaLectura.p_inodo;
         #if (DEBUG && (NIVEL9))
-            printf(GRAY "[mi_read() → Utilizamos la caché de lectura en vez de llamar a buscar_entrada()]\n" RESET);
+            printf(GRAY "\n[mi_read() → Utilizamos la caché de lectura en vez de llamar a buscar_entrada()]\n" RESET);
         #endif
     } else {
         // Si no está en caché, buscamos el inodo con buscar_entrada()

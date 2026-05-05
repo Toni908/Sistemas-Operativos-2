@@ -6,7 +6,7 @@
 
 #include "ficheros.h"
 
-#define TAMBUFFER 1500  //parametro modificable
+#define TAMBUFFER (1500)  //parametro modificable
 
 int main(int argc, char **argv) {
 
