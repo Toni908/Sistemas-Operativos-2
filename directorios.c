@@ -11,36 +11,40 @@
 static struct UltimaEntrada UltimaEntradaEscritura;
 static struct UltimaEntrada UltimaEntradaLectura;
 
-// esto no esta nada bien (creo)
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
-
-    char copiaCamino[60];
-
-    // 1. comprobar valido
+    // 1. comprobar válido
     if (camino[0] != '/') {
         return ERROR_CAMINO_INCORRECTO;
     }
 
-    // 2. copiar camino
-    strcpy(copiaCamino, camino);
-
-    // 3. extraer inicial
-    strcpy(inicial, strtok(copiaCamino + 1, "/"));
-
-    // 4. extraer final
-    char *resto = strtok(NULL, "");
-
-    // 5. obtener tipo
-    if (camino[1 + strlen(inicial)] == '/') {
-        strcpy(final, "/");
-        if (resto != NULL) strcat(final, resto);
+    // Caso raíz
+    if (strcmp(camino, "/") == 0) {
+        strcpy(inicial, "");
+        strcpy(final, "");
         *tipo = 'd';
-        return 1;
-    } else {
-        if (resto != NULL) strcpy(final, resto);
-        *tipo = 'f';
-        return 0;
+        return EXITO;
     }
+
+    // Buscar la siguiente barra
+    const char *p = strchr(camino + 1, '/');
+
+    if (p == NULL) {
+        // No hay más barras → es fichero
+        strcpy(inicial, camino + 1);
+        strcpy(final, "");
+        *tipo = 'f';
+    } else {
+        // Hay más niveles → directorio
+        int len = p - (camino + 1);
+
+        strncpy(inicial, camino + 1, len);
+        inicial[len] = '\0';
+
+        strcpy(final, p);  // incluye '/'
+        *tipo = 'd';
+    }
+
+    return EXITO;
 }
 
 int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos) {
@@ -50,7 +54,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     struct superbloque SB;
 
     char inicial[TAMNOMBRE];
-    char final[strlen(camino_parcial)];
+    char final[strlen(camino_parcial) + 1];
     char tipo;
 
     int cant_entradas_inodo;
