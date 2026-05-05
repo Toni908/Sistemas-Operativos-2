@@ -140,7 +140,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         if (bf != FALLO) {
             bread(bf, buf_bloque);
             memcpy(buf_original, buf_bloque + desp1, BLOCKSIZE - desp1);
-        } else {
+        } else { // el llenar zeros
             memset(buf_original, 0, BLOCKSIZE - desp1);
         }
         bytes_leidos += BLOCKSIZE - desp1;
@@ -151,7 +151,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             if (bf != FALLO) {
                 bread(bf, buf_bloque);
                 memcpy(buf_original + bytes_leidos, buf_bloque, BLOCKSIZE);
-            } else {
+            } else { // el llenar zeros
                 memset(buf_original + bytes_leidos, 0, BLOCKSIZE);
             }
             bytes_leidos += BLOCKSIZE;
@@ -162,7 +162,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         if (bf != FALLO) {
             bread(bf, buf_bloque);
             memcpy(buf_original + bytes_leidos, buf_bloque, desp2 + 1);
-        } else {
+        } else { // el llenar zeros
             memset(buf_original + bytes_leidos, 0, desp2 + 1);
         }
         bytes_leidos += desp2 + 1;
