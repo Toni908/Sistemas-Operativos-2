@@ -128,7 +128,6 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             memcpy(buf_original, buf_bloque + desp1, nbytes);
         } else {
             // Llenamos con ceros para no repetir datos anteriores esto hizo que tuvieramos fallos graves en mi_cat en nivel9
-            // lo admito adelaida, este fallo me ayudo arreglarlo chatgpt, no me escondo.
             memset(buf_original, 0, nbytes);
         }
         bytes_leidos = nbytes;
