@@ -18,7 +18,7 @@
 #define ERROR_ENTRADA_YA_EXISTENTE (-7)
 #define ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO (-8)
 
-#define USARCACHE 1 // 0: sin caché, 1: última L/E, 2: tabla FIFO, 3: tabla LRU
+#define USARCACHE 3 // 0: sin caché, 1: última L/E, 2: tabla FIFO, 3: tabla LRU
 #define CACHE_SIZE 3
 
 struct entrada {

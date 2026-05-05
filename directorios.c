@@ -433,7 +433,8 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
 // leer contenido de un fichero
 // leer contenido de un fichero con soporte de caché FIFO/LRU
 int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes) {
-    unsigned int p_inodo_dir = 0, p_inodo = 0, p_entrada = 0;
+    int p_inodo = -1;
+    unsigned int p_inodo_dir = 0, p_entrada = 0;
     int error;
 
     #if (USARCACHE > 0)
@@ -463,10 +464,12 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     #endif
 
     // 2. Si no estaba en caché, buscar y actualizar la tabla
-    if (p_inodo == 0) {
-        if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0)) < 0) {
+    if (p_inodo == -1) {
+        unsigned int p_inodo_aux;
+        if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo_aux, &p_entrada, 0, 0)) < 0) {
             return error;
         }
+        p_inodo = p_inodo_aux;
 
         #if (USARCACHE == 1)
             strcpy(UltimaEntradaLectura.camino, camino);

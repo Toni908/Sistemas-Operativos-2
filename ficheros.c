@@ -87,7 +87,8 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 }
 
 //Funcion que lee informacion de un fichero/directorio y la almacena en un buffer de memoria
-int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){ 
+// Funcion que lee informacion de un fichero/directorio y la almacena en un buffer de memoria
+int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes) {
     struct inodo inodo;
     unsigned char buf_bloque[BLOCKSIZE];
     unsigned int primerBL, ultimoBL;
@@ -95,17 +96,20 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     int bytes_leidos = 0;
 
     if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
-    // comprobar permiso lectura
-    if ((inodo.permisos & 4) != 4){
-        printf(RED "Error: no hay permiso de lectura\n" RESET);
+
+    // 1. Comprobar permiso lectura
+    if ((inodo.permisos & 4) != 4) {
+        fprintf(stderr, RED "Error: no hay permiso de lectura\n" RESET);
         return FALLO;
     }
-    // si offset fuera del fichero
-    if (offset >= inodo.tamEnBytesLog){
+
+    // 2. Si offset fuera del fichero
+    if (offset >= inodo.tamEnBytesLog) {
         return 0;
     }
-    // ajustar lectura si supera EOF
-    if (offset + nbytes > inodo.tamEnBytesLog){
+
+    // 3. Ajustar lectura si supera EOF
+    if (offset + nbytes > inodo.tamEnBytesLog) {
         nbytes = inodo.tamEnBytesLog - offset;
     }
 
@@ -116,45 +120,59 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
 
     int bf; // bloque fisico
 
-    // Caso 1
-    if (primerBL == ultimoBL){
+    // CASO 1: La lectura cabe en un solo bloque
+    if (primerBL == ultimoBL) {
         bf = traducir_bloque_inodo(ninodo, primerBL, 0);
-        if(bf != FALLO){
+        if (bf != FALLO) {
             bread(bf, buf_bloque);
-            memcpy(buf_original, buf_bloque + desp1, nbytes);  // destino origen bytes
+            memcpy(buf_original, buf_bloque + desp1, nbytes);
+        } else {
+            // Llenamos con ceros para no repetir datos anteriores esto hizo que tuvieramos fallos graves en mi_cat en nivel9
+            // lo admito adelaida, este fallo me ayudo arreglarlo chatgpt, no me escondo.
+            memset(buf_original, 0, nbytes);
         }
         bytes_leidos = nbytes;
     } 
-    else { // Caso 2
-        // Primer Bloque
+    // CASO 2: La lectura ocupa varios bloques
+    else {
+        // --- Primer Bloque ---
         bf = traducir_bloque_inodo(ninodo, primerBL, 0);
-        if(bf != FALLO){
+        if (bf != FALLO) {
             bread(bf, buf_bloque);
             memcpy(buf_original, buf_bloque + desp1, BLOCKSIZE - desp1);
+        } else {
+            memset(buf_original, 0, BLOCKSIZE - desp1);
         }
         bytes_leidos += BLOCKSIZE - desp1;
 
-        // Bloque Intermedio
-        for (unsigned int i = primerBL + 1; i < ultimoBL; i++){
+        // --- Bloques Intermedios ---
+        for (unsigned int i = primerBL + 1; i < ultimoBL; i++) {
             bf = traducir_bloque_inodo(ninodo, i, 0);
-            if(bf != FALLO){
+            if (bf != FALLO) {
                 bread(bf, buf_bloque);
                 memcpy(buf_original + bytes_leidos, buf_bloque, BLOCKSIZE);
+            } else {
+                memset(buf_original + bytes_leidos, 0, BLOCKSIZE);
             }
             bytes_leidos += BLOCKSIZE;
         }
-        // Ultimo Bloque
+
+        // --- Último Bloque ---
         bf = traducir_bloque_inodo(ninodo, ultimoBL, 0);
-        if(bf != FALLO){
+        if (bf != FALLO) {
             bread(bf, buf_bloque);
             memcpy(buf_original + bytes_leidos, buf_bloque, desp2 + 1);
+        } else {
+            memset(buf_original + bytes_leidos, 0, desp2 + 1);
         }
-        bytes_leidos += desp2 + 1; // incluimos el 0
+        bytes_leidos += desp2 + 1;
     }
-    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO; // volver a leer inodo para bloques modificados
 
+    // Actualizar atime
+    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
     inodo.atime = time(NULL);
-    if(escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
+    if (escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
+
     return bytes_leidos;
 }
 
