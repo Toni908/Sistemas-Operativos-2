@@ -12,6 +12,6 @@ int main(int argc, char **argv){
         bumount(argv[1]);
     }else{
         fprintf(stderr, "No se admiten directorios\n");
-        return EXIT_FAILURE;
+        return FALLO;
     }
 }

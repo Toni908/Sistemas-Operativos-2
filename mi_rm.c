@@ -2,23 +2,28 @@
 
 int main(int argc, char **argv){
 
-    //Comprobamos la sintaxis
-    if(argv[0] == NULL || argv[1] == NULL){
-        fprintf(stderr, "Error de sintaxis\n");
+    // comprobar sintaxis
+    if (argc != 3){
+        fprintf(stderr, "Sintaxis: ./mi_rm disco /ruta\n");
         return FALLO;
     }
 
-    //Comprobamos el directorio raiz
-    char *aux = argv[2];
-    if (strcmp(aux, "/") == 0) {
-        fprintf(stderr, "Es el directorio raiz\n");
+    // no permitir borrar raiz
+    if (strcmp(argv[2], "/") == 0){
+        fprintf(stderr, "Error: No se puede borrar el directorio raíz\n");
         return FALLO;
     }
 
-    if(bmount(argv[1]) == FALLO){ // disco virtual
+    if (bmount(argv[1]) == FALLO){
         return FALLO;
     }
 
-    //mi_unlink(argv[2], false);
+    if (mi_unlink(argv[2]) == FALLO){
+        bumount();
+        return FALLO;
+    }
+
     bumount();
+
+    return EXITO;
 }
