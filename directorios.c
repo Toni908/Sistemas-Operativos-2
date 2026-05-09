@@ -585,7 +585,7 @@ int mi_unlink(const char *camino){
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
-    struct entrada entrada, ultima_entrada;
+    struct entrada ultima_entrada;
     struct inodo inodo, inodo_dir;
     int error;
 
