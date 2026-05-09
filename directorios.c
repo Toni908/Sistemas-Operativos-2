@@ -232,7 +232,7 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
 
     // Si es listado extendido, añadimos la cabecera al principio
     if (flag == 'l') {
-        strcat(buffer, "Tipo\tPermisos\tmTime\tTamaño\tNombre\n");
+        strcat(buffer, "Tipo\tPermisos\tmTime\t\tTamaño\tNombre\n");
         strcat(buffer, "----------------------------------------------------------------\n");
     }
 
