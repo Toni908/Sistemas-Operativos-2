@@ -1,5 +1,6 @@
 //Antonio García Font y Maria Isabel Herrero Soteras  
 #include "ficheros.h"
+#include <sys/time.h> // no podemos usar el struct timeval del nivel9 sin incluir el systime
 
 #define TAMNOMBRE 60 //tamaño del nombre de directorio o fichero, en Ext2 = 256
 #define PROFUNDIDAD 32 //profundidad máxima del árbol de directorios
@@ -17,6 +18,9 @@
 #define ERROR_ENTRADA_YA_EXISTENTE (-7)
 #define ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO (-8)
 
+#define USARCACHE 1 // 0: sin caché, 1: última L/E, 2: tabla FIFO, 3: tabla LRU
+#define CACHE_SIZE 3 // tamaño de cache para usar con USARCACHE 2 o 3
+
 struct entrada {
   char nombre[TAMNOMBRE];
   unsigned int ninodo;
@@ -25,6 +29,9 @@ struct entrada {
 struct UltimaEntrada {
    char camino[TAMNOMBRE * PROFUNDIDAD];
    int p_inodo;
+   #if (USARCACHE == 3)
+      struct timeval ultima_consulta;
+   #endif
 };
 
 // Nivel 7
@@ -39,3 +46,6 @@ int mi_stat(const char *camino, struct STAT *p_stat);
 // Nivel 9
 int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes);
 int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes);
+//Nivel 10
+int mi_link(const char *camino1, const char *camino2);
+int mi_unlink(const char *camino);
