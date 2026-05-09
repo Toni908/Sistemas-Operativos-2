@@ -75,7 +75,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
     inodo.mtime = time(NULL);
 
-    if (inodo.numBloquesOcupados > bloquesAntes){
+    if (inodo.numBloquesOcupados > bloquesAntes){ // el ctime hay que actualizarlo solo si creamos inodos, antes lo haciamos siempre
         inodo.ctime = time(NULL);
     }
 
