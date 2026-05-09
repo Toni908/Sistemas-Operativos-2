@@ -510,33 +510,18 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
 
 //Crea el enlace de una entrada de directorio camino2 al inodo especificado por otra entrada de directorio camino1 
 int mi_link(const char *camino1, const char *camino2){
-
     unsigned int p_inodo_dir1 = 0;
     unsigned int p_inodo1 = 0;
     unsigned int p_entrada1 = 0;
-
     unsigned int p_inodo_dir2 = 0;
     unsigned int p_inodo2 = 0;
     unsigned int p_entrada2 = 0;
-
     int error;
-
     struct entrada entrada;
     struct inodo inodo;
 
-    #if (DEBUG && NIVEL10)
-        printf(GRAY "[mi_link() → camino1: %s, camino2: %s]\n" RESET, camino1, camino2);
-    #endif
-
     // camino1 debe existir
-    if ((error = buscar_entrada(
-            camino1,
-            &p_inodo_dir1,
-            &p_inodo1,
-            &p_entrada1,
-            0,
-            0)) < 0){
-
+    if ((error = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 0)) < 0){
         mostrar_error_buscar_entrada(error);
         return FALLO;
     }
@@ -560,25 +545,13 @@ int mi_link(const char *camino1, const char *camino2){
 
     // crear entrada camino2
     // debe NO existir
-    if ((error = buscar_entrada(
-            camino2,
-            &p_inodo_dir2,
-            &p_inodo2,
-            &p_entrada2,
-            1,
-            6)) < 0){
-
+    if ((error = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6)) < 0){
         mostrar_error_buscar_entrada(error);
         return FALLO;
     }
 
     // leer entrada creada
-    if (mi_read_f(
-            p_inodo_dir2,
-            &entrada,
-            p_entrada2 * sizeof(struct entrada),
-            sizeof(struct entrada)) < 0){
-
+    if (mi_read_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0){
         liberar_inodo(p_inodo2);
         return FALLO;
     }
@@ -587,19 +560,10 @@ int mi_link(const char *camino1, const char *camino2){
     entrada.ninodo = p_inodo1;
 
     // escribir entrada modificada
-    if (mi_write_f(
-            p_inodo_dir2,
-            &entrada,
-            p_entrada2 * sizeof(struct entrada),
-            sizeof(struct entrada)) < 0){
-
+    if (mi_write_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0){
         liberar_inodo(p_inodo2);
         return FALLO;
     }
-
-    #if (DEBUG && NIVEL10)
-        printf(GRAY "[mi_link() → entrada %s enlazada con inodo %d]\n" RESET, camino2, p_inodo1);
-    #endif
 
     // liberar el inodo reservado para camino2
     if (liberar_inodo(p_inodo2) < 0){
@@ -610,10 +574,6 @@ int mi_link(const char *camino1, const char *camino2){
     inodo.nlinks++;
     inodo.ctime = time(NULL);
 
-    #if (DEBUG && NIVEL10)
-        printf(GRAY "[mi_link() → nlinks del inodo %d actualizado a %d]\n" RESET, p_inodo1, inodo.nlinks);
-    #endif
-
     if (escribir_inodo(p_inodo1, &inodo) < 0){
         return FALLO;
     }
@@ -622,32 +582,18 @@ int mi_link(const char *camino1, const char *camino2){
 }
 
 int mi_unlink(const char *camino){
-
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
-
     struct entrada entrada, ultima_entrada;
     struct inodo inodo, inodo_dir;
-
     int error;
-
-    #if (DEBUG && NIVEL10)
-        printf(GRAY "[mi_unlink() → camino: %s]\n" RESET, camino);
-    #endif
 
     if (strcmp(camino, "/") == 0){
         return FALLO;
     }
 
-    if ((error = buscar_entrada(
-            camino,
-            &p_inodo_dir,
-            &p_inodo,
-            &p_entrada,
-            0,
-            0)) < 0){
-
+    if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0)) < 0){
         mostrar_error_buscar_entrada(error);
         return FALLO;
     }
@@ -658,7 +604,7 @@ int mi_unlink(const char *camino){
 
     // si es directorio debe estar vacío
     if (inodo.tipo == 'd' && inodo.tamEnBytesLog > 0){
-        fprintf(stderr, RED "Error: El directorio no está vacío\n" RESET);
+        fprintf(stderr, "Error: El directorio no está vacío\n");
         return FALLO;
     }
 
@@ -666,66 +612,31 @@ int mi_unlink(const char *camino){
         return FALLO;
     }
 
-    int num_entradas =
-        inodo_dir.tamEnBytesLog / sizeof(struct entrada);
+    int num_entradas = inodo_dir.tamEnBytesLog / sizeof(struct entrada);
 
     // si no es la última entrada
     if (p_entrada != num_entradas - 1){
-
-        if (mi_read_f(
-                p_inodo_dir,
-                &ultima_entrada,
-                (num_entradas - 1) * sizeof(struct entrada),
-                sizeof(struct entrada)) < 0){
-
+        if (mi_read_f(p_inodo_dir, &ultima_entrada, (num_entradas - 1) * sizeof(struct entrada), sizeof(struct entrada)) < 0){
             return FALLO;
         }
 
-        if (mi_write_f(
-                p_inodo_dir,
-                &ultima_entrada,
-                p_entrada * sizeof(struct entrada),
-                sizeof(struct entrada)) < 0){
-
+        if (mi_write_f(p_inodo_dir, &ultima_entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) < 0){
             return FALLO;
         }
-
-        #if (DEBUG && NIVEL10)
-            printf(GRAY "[mi_unlink() → sustituida entrada %d por la última entrada]\n" RESET, p_entrada);
-        #endif
     }
 
     // truncar una entrada
-    if (mi_truncar_f(
-            p_inodo_dir,
-            inodo_dir.tamEnBytesLog - sizeof(struct entrada)) < 0){
-
+    if (mi_truncar_f(p_inodo_dir, inodo_dir.tamEnBytesLog - sizeof(struct entrada)) < 0){
         return FALLO;
     }
-
-    #if (DEBUG && NIVEL10)
-        printf(GRAY "[mi_unlink() → truncado directorio padre]\n" RESET);
-    #endif
 
     // actualizar links
     inodo.nlinks--;
 
-    #if (DEBUG && NIVEL10)
-        printf(GRAY "[mi_unlink() → nlinks del inodo %d actualizado a %d]\n" RESET, p_inodo, inodo.nlinks);
-    #endif
-
     if (inodo.nlinks == 0){
-
         liberar_inodo(p_inodo);
-
-        #if (DEBUG && NIVEL10)
-            printf(GRAY "[mi_unlink() → liberado inodo %d]\n" RESET, p_inodo);
-        #endif
-
     } else {
-
         inodo.ctime = time(NULL);
-
         escribir_inodo(p_inodo, &inodo);
     }
 
