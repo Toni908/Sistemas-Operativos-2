@@ -506,3 +506,35 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
 
     return mi_read_f(p_inodo, buf, offset, nbytes);
 }
+
+//Crea el enlace de una entrada de directorio camino2 al inodo especificado por otra entrada de directorio camino1 
+int mi_link(const char *camino1, const char *camino2){
+    unsigned int p_inodo_dir1, p_inodo1, p_inodo_dir2, p_inodo2;
+    p_inodo_dir1 = p_inodo1 = p_inodo_dir2 = p_inodo2 = 0;
+    unsigned int p_entrada1 = 0;
+    unsigned int p_entrada2 = 0;
+    int error;
+    struct entrada entrada;
+    struct inodo inodo;
+    if ((error = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 4)) < 0){
+        mostrar_error_buscar_entrada(error);
+        return FALLO;
+    }
+    if ((error = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6)) < 0){
+        mostrar_error_buscar_entrada(error);
+        return FALLO;
+    }
+    mi_read_f(p_inodo_dir2, &entrada, (sizeof(struct entrada) * p_entrada2), sizeof(struct entrada));
+    entrada.ninodo = p_inodo1; //le asignamos el mismo inodo que la entrada1
+    mi_write_f(p_inodo_dir2, &entrada, (sizeof(struct entrada) * p_entrada2), sizeof(struct entrada));
+    liberar_inodo(p_inodo2); //liberamos el inodo creado para la entrada2
+    leer_inodo(p_inodo1, &inodo);
+    inodo.nlinks++;
+    inodo.ctime = time(NULL);
+    escribir_inodo(p_inodo1, &inodo);
+    return EXITO;
+}
+
+int mi_unlink(const char *camino){
+    //Programar
+}
