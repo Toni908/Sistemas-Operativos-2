@@ -129,13 +129,17 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
             if (strcmp(final, "/") != 0) {
                 return ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO;
             }
+            mi_waitSem();
             entrada.ninodo = reservar_inodo('d', permisos);
+            mi_signalSem();
 
             #if (DEBUG && (NIVEL7 || NIVEL8))
                 printf(GRAY "[buscar_entrada()→ reservado inodo %d tipo d con permisos %d para %s]\n" RESET, entrada.ninodo, permisos, inicial);
             #endif
         } else {
+            mi_waitSem();
             entrada.ninodo = reservar_inodo('f', permisos);
+            mi_signalSem();
             #if (DEBUG && (NIVEL7 || NIVEL8))
                 printf(GRAY "[buscar_entrada()→ reservado inodo %d tipo f con permisos %d para %s]\n" RESET, entrada.ninodo, permisos, inicial);
             #endif
@@ -145,7 +149,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 
         // Escribir entrada al final
         if (mi_write_f(*p_inodo_dir, &entrada, cant_entradas_inodo * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
+            mi_waitSem();
             liberar_inodo(entrada.ninodo);
+            mi_signalSem();
             return FALLO;
         }
 
@@ -194,11 +200,16 @@ void mostrar_error_buscar_entrada(int error) {
 
 //La función, símplemente, hace de wrapper de la función buscar_entrada()
 int mi_creat(const char *camino, unsigned char permisos){
+    mi_waitSem();
     unsigned int p_inodo_dir = 0; // hay que meter una variable y pasarla como puntero no sirve solo con 0
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
-
-    return buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos);
+    if(buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos) < 0){
+        mi_signalSem();
+        return FALLO;
+    }
+    mi_signalSem();
+    return EXITO;
 }
 
 // La funcion pone el contenido del directorio/fichero en un buffer de memoria
@@ -552,7 +563,9 @@ int mi_link(const char *camino1, const char *camino2){
 
     // leer entrada creada
     if (mi_read_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0){
+        mi_waitSem();
         liberar_inodo(p_inodo2);
+        mi_signalSem();
         return FALLO;
     }
 
@@ -561,23 +574,29 @@ int mi_link(const char *camino1, const char *camino2){
 
     // escribir entrada modificada
     if (mi_write_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0){
+        mi_waitSem();
         liberar_inodo(p_inodo2);
+        mi_signalSem();
         return FALLO;
     }
 
     // liberar el inodo reservado para camino2
+    mi_waitSem();
     if (liberar_inodo(p_inodo2) < 0){
+        mi_signalSem();
         return FALLO;
     }
+    mi_signalSem();
 
     // actualizar nlinks y ctime
+    mi_waitSem();
     inodo.nlinks++;
     inodo.ctime = time(NULL);
 
     if (escribir_inodo(p_inodo1, &inodo) < 0){
         return FALLO;
     }
-
+    mi_signalSem();
     return EXITO;
 }
 
@@ -631,14 +650,17 @@ int mi_unlink(const char *camino){
     }
 
     // actualizar links
+     mi_waitSem();
     inodo.nlinks--;
 
     if (inodo.nlinks == 0){
+          
         liberar_inodo(p_inodo);
+        
     } else {
         inodo.ctime = time(NULL);
         escribir_inodo(p_inodo, &inodo);
     }
-
+    mi_signalSem();
     return EXITO;
 }

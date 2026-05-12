@@ -1,7 +1,10 @@
 //Antonio García Font y Maria Isabel Herrero Soteras  
 #include "bloques.h"
+#include " semaforo_mutex_posix.h"
 
 static int descriptor = 0;
+static sem_t *mutex;
+static unsigned int contSem = 0;
 
 //Funcion para montar el dipositivo virtual
 int bmount(const char *camino){
@@ -11,6 +14,10 @@ int bmount(const char *camino){
         perror(RED "Error"); 
         return FALLO;
     }
+    mutex = initSem(); //inicializamos el semaforo mutex
+    if (mutex == NULL) {
+        return FALLO;
+     }
     return descriptor;
 }
 
@@ -20,6 +27,7 @@ int bumount(){
         perror(RED "Error");
         return FALLO;
     }
+    deleteSem(); //eliminamos el semaforo mutex
     descriptor = EXITO; //para dejarlo limpio
     return descriptor;
 }
@@ -54,4 +62,18 @@ int bread(unsigned int nbloque, void *buf){
         return FALLO;
     }
     return bytes;
+}
+
+void mi_waitSem(){
+    if (!contSem) {
+        waitSem(mutex);
+    }
+    contSem++;
+}
+
+void mi_signalSem() {
+    contSem--;
+    if (!contSem) {
+        signalSem(mutex);
+    }
 }
