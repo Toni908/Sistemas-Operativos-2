@@ -1,3 +1,4 @@
+ /* semaforo_mutex_posix.h */
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -12,3 +13,4 @@ sem_t *initSem();
 void deleteSem();
 void signalSem(sem_t *sem);
 void waitSem(sem_t *sem);
+

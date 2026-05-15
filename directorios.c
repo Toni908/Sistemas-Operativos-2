@@ -434,12 +434,16 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
         UltimasEntradas[pos_lru].p_inodo = p_inodo;
         gettimeofday(&UltimasEntradas[pos_lru].ultima_consulta, NULL);
         #if (DEBUG && NIVEL9)
-        printf(GRAY "[mi_write() → Reemplazamos cache[%d]: %s (LRU)]\n" RESET, pos_lru, camino);
+            printf(GRAY "[mi_write() → Reemplazamos cache[%d]: %s (LRU)]\n" RESET, pos_lru, camino);
         #endif
     #endif
     }
 
-    return mi_write_f(p_inodo, buf, offset, nbytes);
+    mi_waitSem(); // Nivel 11 
+    int returnValue = mi_write_f(p_inodo, buf, offset, nbytes);
+    mi_signalSem();
+
+    return returnValue;
 }
 
 // leer contenido de un fichero
@@ -450,7 +454,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     int error;
 
     #if (USARCACHE > 0)
-        // 1. Buscar en la caché compartida
+        // 1. Buscar en la caché 
         #if (USARCACHE == 1)
             if (strcmp(camino, UltimaEntradaLectura.camino) == 0) {
                 p_inodo = UltimaEntradaLectura.p_inodo;
@@ -516,7 +520,11 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
         #endif
     }
 
-    return mi_read_f(p_inodo, buf, offset, nbytes);
+    mi_waitSem(); // Nivel 11 
+    int returnvalue = mi_read_f(p_inodo, buf, offset, nbytes);
+    mi_signalSem();
+
+    return returnvalue;
 }
 
 //Crea el enlace de una entrada de directorio camino2 al inodo especificado por otra entrada de directorio camino1 
@@ -530,6 +538,8 @@ int mi_link(const char *camino1, const char *camino2){
     int error;
     struct entrada entrada;
     struct inodo inodo;
+
+    mi_waitSem();
 
     // camino1 debe existir
     if ((error = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 0)) < 0){
@@ -563,9 +573,7 @@ int mi_link(const char *camino1, const char *camino2){
 
     // leer entrada creada
     if (mi_read_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0){
-        mi_waitSem();
         liberar_inodo(p_inodo2);
-        mi_signalSem();
         return FALLO;
     }
 
@@ -574,22 +582,16 @@ int mi_link(const char *camino1, const char *camino2){
 
     // escribir entrada modificada
     if (mi_write_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0){
-        mi_waitSem();
         liberar_inodo(p_inodo2);
-        mi_signalSem();
         return FALLO;
     }
 
     // liberar el inodo reservado para camino2
-    mi_waitSem();
     if (liberar_inodo(p_inodo2) < 0){
-        mi_signalSem();
         return FALLO;
     }
-    mi_signalSem();
 
     // actualizar nlinks y ctime
-    mi_waitSem();
     inodo.nlinks++;
     inodo.ctime = time(NULL);
 
@@ -607,6 +609,8 @@ int mi_unlink(const char *camino){
     struct entrada ultima_entrada;
     struct inodo inodo, inodo_dir;
     int error;
+
+    mi_waitSem();
 
     if (strcmp(camino, "/") == 0){
         return FALLO;
@@ -650,7 +654,6 @@ int mi_unlink(const char *camino){
     }
 
     // actualizar links
-     mi_waitSem();
     inodo.nlinks--;
 
     if (inodo.nlinks == 0){

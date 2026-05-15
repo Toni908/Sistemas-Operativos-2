@@ -1,6 +1,6 @@
 //Antonio García Font y Maria Isabel Herrero Soteras  
 #include "bloques.h"
-#include " semaforo_mutex_posix.h"
+#include "semaforo_mutex_posix.h"
 
 static int descriptor = 0;
 static sem_t *mutex;

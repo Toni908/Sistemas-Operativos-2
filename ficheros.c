@@ -14,13 +14,19 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     unsigned int desp1, desp2;
     int bytes_escritos = 0;
 
-    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
+    mi_waitSem();
+
+    if (leer_inodo(ninodo, &inodo) == FALLO){
+        mi_signalSem();
+        return FALLO;
+    }
 
     unsigned int bloquesAntes = inodo.numBloquesOcupados;
 
     // comprobar permiso escritura
     if ((inodo.permisos & 2) != 2){
         printf(RED "Error: no hay permiso de escritura\n" RESET);
+        mi_signalSem();
         return FALLO;
     }
 
@@ -34,7 +40,10 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     // Caso 1: todo en el mismo bloque
     if (primerBL == ultimoBL){
         bf = traducir_bloque_inodo(ninodo, primerBL, 1);
-        if(bf == FALLO) return FALLO;
+        if(bf == FALLO){
+            mi_signalSem();
+            return FALLO;
+        } 
         bread(bf, buf_bloque);
         memcpy(buf_bloque + desp1, buf_original, nbytes);
         bwrite(bf, buf_bloque);
@@ -43,7 +52,10 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     else {
         // Primer Bloque
         bf = traducir_bloque_inodo(ninodo, primerBL, 1);
-        if(bf == FALLO) return FALLO;
+        if(bf == FALLO){
+            mi_signalSem();
+            return FALLO;
+        }
         bread(bf, buf_bloque);
         memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
         bwrite(bf, buf_bloque);
@@ -52,21 +64,30 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         // Bloques intermedios
         for (unsigned int i = primerBL + 1; i < ultimoBL; i++){
             bf = traducir_bloque_inodo(ninodo, i, 1);
-            if(bf == FALLO) return FALLO;
+            if(bf == FALLO){
+                mi_signalSem();
+                return FALLO;
+            }
             bwrite(bf, buf_original + bytes_escritos);
             bytes_escritos += BLOCKSIZE;
         }
 
         // Último bloque
         bf = traducir_bloque_inodo(ninodo, ultimoBL, 1);
-        if(bf == FALLO) return FALLO;
+        if(bf == FALLO){
+            mi_signalSem();
+            return FALLO;
+        }
         bread(bf, buf_bloque);
         memcpy(buf_bloque, buf_original + bytes_escritos, desp2 + 1);
         bwrite(bf, buf_bloque);
         bytes_escritos += desp2 + 1;
     }
 
-    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
+    if (leer_inodo(ninodo, &inodo) == FALLO){
+        mi_signalSem();
+        return FALLO;
+    }
 
     int cambio_tam = 0;
 
@@ -81,8 +102,12 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         inodo.ctime = time(NULL);
     }
 
-    if(escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
+    if(escribir_inodo(ninodo, &inodo) == FALLO){
+        mi_signalSem();
+        return FALLO;
+    }
 
+    mi_signalSem();
     return bytes_escritos;
 }
 
@@ -168,9 +193,17 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     }
 
     // Actualizar atime
-    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
+    mi_waitSem(); // Nivel 11 reservar para mi_read a nivel de ficheros
+    if (leer_inodo(ninodo, &inodo) == FALLO){
+        mi_signalSem();
+        return FALLO;
+    }
     inodo.atime = time(NULL);
-    if (escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
+    if (escribir_inodo(ninodo, &inodo) == FALLO){
+        mi_signalSem();
+        return FALLO;
+    }
+    mi_signalSem();
 
     return bytes_leidos;
 }
@@ -199,10 +232,19 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat){
 //Funcion que cambia los permisos de un directorio/fichero
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
     struct inodo inodo;
-    if (leer_inodo(ninodo, &inodo) == FALLO) return FALLO;
+
+    mi_waitSem(); // Nivel 11 reservar para mi_chmod a nivel de ficheros
+    if (leer_inodo(ninodo, &inodo) == FALLO){
+        mi_signalSem();
+        return FALLO;
+    }
     inodo.permisos = permisos;
     inodo.ctime = time(NULL);    // actualizar cambio de metadatos
-    if (escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
+    if (escribir_inodo(ninodo, &inodo) == FALLO){
+        mi_signalSem();
+        return FALLO;
+    }
+    mi_signalSem();
 
     return EXITO;
 }
@@ -232,6 +274,7 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     inodo.tamEnBytesLog = nbytes;
     inodo.numBloquesOcupados = inodo.numBloquesOcupados - liberados;
     escribir_inodo(ninodo, &inodo); //guardamos el inodo
+
     
     return liberados;
 }

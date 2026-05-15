@@ -1,4 +1,5 @@
-#include " semaforo_mutex_posix.h"
+/* semaforo_mutex_posix.c */
+#include "semaforo_mutex_posix.h"
 
 
 /* Ejemplo de creación e inicialización de semáforos POSIX para MUTEX con "semáforos con nombre" (named) */
@@ -30,3 +31,5 @@ void signalSem(sem_t *sem) {
 void waitSem(sem_t *sem) {
    sem_wait(sem);
 }
+
+
