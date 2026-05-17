@@ -8,6 +8,12 @@ int main(int argc, char **argv){
         return FALLO;
     }
 
+    // no permitir borrar raiz
+    if (strcmp(argv[2], "/") == 0){
+        fprintf(stderr, "Error: No se puede borrar el directorio raíz\n");
+        return FALLO;
+    }
+
     if (bmount(argv[1]) == FALLO){
         return FALLO;
     }
@@ -18,9 +24,9 @@ int main(int argc, char **argv){
         return FALLO;
     }
 
-    // Si es un directorio, denegamos el borrado
-    if (stat.tipo == 'd') {
-        fprintf(stderr, "Error: La ruta '%s' es un directorio. Por favor, usa mi_rmdir.\n", argv[2]);
+  
+    if (stat.tipo != 'd') {
+        fprintf(stderr, "Error: La ruta '%s' no es un directorio. Por favor, usa mi_rm para borrar ficheros.\n", argv[2]);
         bumount();
         return FALLO;
     }
