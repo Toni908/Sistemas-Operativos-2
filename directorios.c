@@ -630,7 +630,7 @@ int mi_unlink(const char *camino){
 
     // si es directorio debe estar vacío
     if (inodo.tipo == 'd' && inodo.tamEnBytesLog > 0){
-        fprintf(stderr, "Error: El directorio no está vacío\n");
+        fprintf(stderr, RED "Error: El directorio %s no está vacío\n" RESET, camino);
         return FALLO;
     }
 

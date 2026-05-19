@@ -4,13 +4,13 @@ int main(int argc, char **argv){
 
     // comprobar sintaxis
     if (argc != 3){
-        fprintf(stderr, "Sintaxis: ./mi_rm disco /ruta\n");
+        fprintf(stderr, RED "Sintaxis: ./mi_rmdir disco /ruta\n" RESET);
         return FALLO;
     }
 
     // no permitir borrar raiz
     if (strcmp(argv[2], "/") == 0){
-        fprintf(stderr, "Error: No se puede borrar el directorio raíz\n");
+        fprintf(stderr, RED "Error: No se puede borrar el directorio raíz\n" RESET);
         return FALLO;
     }
 
@@ -26,7 +26,7 @@ int main(int argc, char **argv){
 
   
     if (stat.tipo != 'd') {
-        fprintf(stderr, "Error: La ruta '%s' no es un directorio. Por favor, usa mi_rm para borrar ficheros.\n", argv[2]);
+        fprintf(stderr, RED "Error: La ruta '%s' no es un directorio. Por favor, usa mi_rm para borrar ficheros.\n" RESET, argv[2]);
         bumount();
         return FALLO;
     }
