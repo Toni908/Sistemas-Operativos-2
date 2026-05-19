@@ -33,7 +33,10 @@ int main(int argc, char **argv){
         total_leidos += leidos;
     }
 
-    write(1, "\n", 1);
+    // Solo añadir \n si la salida va a terminal, no a archivo
+    if (isatty(1)) {
+        write(1, "\n", 1);
+    }
 
     // Mostrar total de bytes leídos
     fprintf(stderr, "Total_leidos %d\n", total_leidos);
