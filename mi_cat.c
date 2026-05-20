@@ -34,6 +34,9 @@ int main(int argc, char **argv){
     }
 
     // Solo añadir \n si la salida va a terminal, no a archivo
+    // Esto es una liada, porque cuando sacamos a terminal, se nos queda pegado el $ del terminal lo que imprime el buffer asi que hay que hacer el salto, 
+    // pero solo podemos usarlo a la hora de imprimir y no de guardar, ya que si lo usamos al guardar archivos con > nos añade un byte mas, 
+    // encontre esto por internet, y parece que funciona, asi que lo dejare
     if (isatty(1)) {
         write(1, "\n", 1);
     }
