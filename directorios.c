@@ -246,7 +246,6 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
     struct entrada entrada;
     struct tm *tm_info;
     char tmp[TAMFILA];
-    char tmp_nombre[TAMNOMBRE + 30]; // Espacio extra para los códigos de colores
 
     int error;
     buffer[0] = '\0';
@@ -295,12 +294,12 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
             strcat(buffer, tmp);
 
             // Nombre
-            sprintf(tmp_nombre, CYAN "%s" RESET "\n", strrchr(camino, '/') + 1);
-            strcat(buffer, tmp_nombre);
+            sprintf(tmp, CYAN "%s" RESET "\n", strrchr(camino, '/') + 1);
+            strcat(buffer, tmp);
         } else {
             // Listado simple
-            sprintf(tmp_nombre, CYAN "%s" RESET "\t", strrchr(camino, '/') + 1);
-            strcat(buffer, tmp_nombre);
+            sprintf(tmp, CYAN "%s" RESET "\t", strrchr(camino, '/') + 1);
+            strcat(buffer, tmp);
         }
         return 1; // Un solo fichero listado
     }
@@ -308,11 +307,18 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
     // directorio: hay que listar su contenido
     int cant_entradas = inodo.tamEnBytesLog / sizeof(struct entrada);
     struct inodo inodo_aux;
+    
+    int entradas_por_bloque = BLOCKSIZE / sizeof(struct entrada);
+    struct entrada buffer_lectura[entradas_por_bloque];
 
     for (int i = 0; i < cant_entradas; i++) {
-        if (mi_read_f(p_inodo, &entrada, i * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
-            return FALLO;
+        if (i % entradas_por_bloque == 0) {
+            memset(buffer_lectura, 0, sizeof(buffer_lectura));
+            if (mi_read_f(p_inodo, buffer_lectura, i * sizeof(struct entrada), sizeof(buffer_lectura)) < 0) {
+                return FALLO;
+            }
         }
+        entrada = buffer_lectura[i % entradas_por_bloque];
 
         if (leer_inodo(entrada.ninodo, &inodo_aux) < 0) {
             return FALLO;
@@ -341,19 +347,19 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
 
             // Nombres
             if (inodo_aux.tipo == 'd') {
-                sprintf(tmp_nombre, RED "%s" RESET "\n", entrada.nombre);
+                sprintf(tmp, RED "%s" RESET "\n", entrada.nombre);
             } else {
-                sprintf(tmp_nombre, CYAN "%s" RESET "\n", entrada.nombre);
+                sprintf(tmp, CYAN "%s" RESET "\n", entrada.nombre);
             }
-            strcat(buffer, tmp_nombre);
+            strcat(buffer, tmp);
         } else {
             // Listado simple
             if (inodo_aux.tipo == 'd') {
-                sprintf(tmp_nombre, RED "%s" RESET "\t", entrada.nombre);
+                sprintf(tmp, RED "%s" RESET "\t", entrada.nombre);
             } else {
-                sprintf(tmp_nombre, CYAN "%s" RESET "\t", entrada.nombre);
+                sprintf(tmp, CYAN "%s" RESET "\t", entrada.nombre);
             }
-            strcat(buffer, tmp_nombre);
+            strcat(buffer, tmp);
         }
     }
 
