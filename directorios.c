@@ -62,7 +62,6 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
 }
 
 int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos) {
-
     struct entrada entrada;
     struct inodo inodo_dir;
     struct superbloque SB;
@@ -70,117 +69,148 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     char inicial[TAMNOMBRE];
     char final[strlen(camino_parcial) + 1];
     char tipo;
-
+    
     int cant_entradas_inodo;
-    int num_entrada_inodo = 0;
+    int num_entrada_inodo;
+    int encontrada; // 0: entrada no encontrada, 1: entrada encontrada
 
-    if(bread(posSB, &SB) == FALLO) return FALLO;
+    encontrada = 0;
 
-    // Caso raíz
+    // si (es el directorio raíz) entonces //camino_parcial es “/”
     if (strcmp(camino_parcial, "/") == 0) {
-        *p_inodo = SB.posInodoRaiz;
-        *p_entrada = 0; // no se usara, valor dummy
-        return EXITO;
+        if (bread(posSB, &SB) == FALLO) return FALLO; // Necesario para obtener posInodoRaiz
+        *p_inodo = SB.posInodoRaiz; // nuestra raiz siempre estará asociada al inodo 0
+        *p_entrada = 0;
+        return 0;
     }
 
-    // Extraer camino
-    if (extraer_camino(camino_parcial, inicial, final, &tipo) < 0) return ERROR_CAMINO_INCORRECTO;
+    // extraer_camino (camino_parcial, inicial, final, &tipo)
+    // si (error al extraer camino) entonces devolver ERROR_CAMINO_INCORRECTO 
+    if (extraer_camino(camino_parcial, inicial, final, &tipo) < 0) {
+        return ERROR_CAMINO_INCORRECTO;
+    }
 
     #if (DEBUG && (NIVEL7 || NIVEL8)) 
         printf(GRAY "[buscar_entrada()→ inicial: %s, final: %s, reservar: %d]\n" RESET, inicial, final, reservar);
     #endif
 
-    // Leer inodo del directorio
-    if (leer_inodo(*p_inodo_dir, &inodo_dir) < 0) return ERROR_PERMISO_LECTURA;
+    // buscamos la entrada cuyo nombre se encuentra en inicial
+    if (leer_inodo(*p_inodo_dir, &inodo_dir) < 0) return FALLO;
 
-
-    // Comprobar permisos de lectura
+    // si (inodo_dir no tiene permisos de lectura) entonces devolver ERROR_PERMISO_LECTURA 
     if (!(inodo_dir.permisos & 4)) {
         #if (DEBUG && (NIVEL7 || NIVEL8)) 
             printf(GRAY "[buscar_entrada()→ El inodo %d no tiene permisos de lectura]\n" RESET, *p_inodo_dir);
         #endif
         return ERROR_PERMISO_LECTURA;
     }
-    
-    // Calcular número de entradas, pa saber hasta donde iterar
-    cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada);
 
-    // Buscar entrada
-    while (num_entrada_inodo < cant_entradas_inodo) {
-        if (mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) < 0) return FALLO;
-        if (strcmp(inicial, entrada.nombre) == 0) break;
-        num_entrada_inodo++;
-    }
+    int entradas_por_bloque = BLOCKSIZE / sizeof(struct entrada);
+    struct entrada buffer_lectura[entradas_por_bloque];
+    memset(buffer_lectura, 0, sizeof(buffer_lectura));
 
-    // Si no existe el inodo y hay que crearlo
-    if (num_entrada_inodo == cant_entradas_inodo) {
-        if (reservar == 0) return ERROR_NO_EXISTE_ENTRADA_CONSULTA;
+    int num_entrada_inodo = 0;
+    int encontrada = 0;
 
-        // No se puede crear dentro de fichero
-        if (inodo_dir.tipo == 'f') return ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO;
-
-        // Permiso escritura
-        if (!(inodo_dir.permisos & 2)) return ERROR_PERMISO_ESCRITURA;
-
-        // Crear entrada
-        strcpy(entrada.nombre, inicial);
-
-        if (tipo == 'd') {
-            if (strcmp(final, "/") != 0) {
-                return ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO;
+    if (cant_entradas_inodo > 0) {
+        // Al ser num_entrada_inodo = 0, cargamos el primer bloque de disco
+        if (mi_read_f(*p_inodo_dir, buffer_lectura, num_entrada_inodo * sizeof(struct entrada), sizeof(buffer_lectura)) < 0) {
+            return FALLO;
+        }
+        // Extraemos la primera entrada (índice 0)
+        entrada = buffer_lectura[num_entrada_inodo % entradas_por_bloque];
+        while (num_entrada_inodo < cant_entradas_inodo) {
+            num_entrada_inodo++;
+            // ¿Es la entrada que buscamos?
+            if (strcmp(entrada.nombre, inicial) == 0) {
+                encontrada = 1;
+                *p_entrada = num_entrada_inodo;
+                break; // Salimos inmediatamente si la encontramos
             }
-            mi_waitSem();
-            entrada.ninodo = reservar_inodo('d', permisos);
-            mi_signalSem();
-
-            #if (DEBUG && (NIVEL7 || NIVEL8))
-                printf(GRAY "[buscar_entrada()→ reservado inodo %d tipo d con permisos %d para %s]\n" RESET, entrada.ninodo, permisos, inicial);
-            #endif
-        } else {
-            mi_waitSem();
-            entrada.ninodo = reservar_inodo('f', permisos);
-            mi_signalSem();
-            #if (DEBUG && (NIVEL7 || NIVEL8))
-                printf(GRAY "[buscar_entrada()→ reservado inodo %d tipo f con permisos %d para %s]\n" RESET, entrada.ninodo, permisos, inicial);
-            #endif
-        }
-
-        if (entrada.ninodo < 0) return FALLO;
-
-        // Escribir entrada al final
-        if (mi_write_f(*p_inodo_dir, &entrada, cant_entradas_inodo * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
-            mi_waitSem();
-            liberar_inodo(entrada.ninodo);
-            mi_signalSem();
-            return FALLO;
-        }
-
-        #if (DEBUG && (NIVEL7 || NIVEL8))
-            printf(GRAY "[buscar_entrada()→ creada entrada: %s, %d]\n" RESET, entrada.nombre, entrada.ninodo);
-        #endif
-    }
-
-    // Leer entrada encontrada (si ya existía)
-    if (num_entrada_inodo < cant_entradas_inodo) {
-        if (mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
-            return FALLO;
         }
     }
 
-    // Caso final
-    if (strcmp(final, "/") == 0 || tipo == 'f') {
-        if ((num_entrada_inodo < cant_entradas_inodo) && (reservar == 1)) {
+    if ((encontrada == 0) && (num_entrada_inodo == cant_entradas_inodo)) {
+        // seleccionar(reservar)
+        switch (reservar) {
+            case 0: // modo consulta. Como no existe retornamos error
+                return ERROR_NO_EXISTE_ENTRADA_CONSULTA;
+            
+            case 1: // modo escritura: Creamos la entrada en el directorio referenciado por *p_inodo_dir
+                // si es fichero no permitir escritura
+                if (inodo_dir.tipo == 'f') {
+                    return ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO;
+                }
+                
+                // si es directorio comprobar que tiene permiso de escritura
+                if (!(inodo_dir.permisos & 2)) {
+                    return ERROR_PERMISO_ESCRITURA;
+                } else {
+                    // copiar *inicial en el nombre de la entrada
+                    strcpy(entrada.nombre, inicial);
+                    
+                    // si (tipo = 'd') entonces
+                    if (tipo == 'd') {
+                        // si (final es igual a "/") entonces
+                        if (strcmp(final, "/") == 0) {
+                            // reservar un inodo como directorio y asignarlo a la entrada
+                            mi_waitSem();
+                            entrada.ninodo = reservar_inodo('d', permisos);
+                            mi_signalSem();
+                            #if (DEBUG && (NIVEL7 || NIVEL8))
+                                printf(GRAY "[buscar_entrada()→ reservado inodo %d tipo d con permisos %d para %s]\n" RESET, entrada.ninodo, permisos, inicial);
+                            #endif
+                        } else { // no es el final de la ruta
+                            return ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO;
+                        }
+                    } else { // es un fichero
+                        // reservar un inodo como fichero y asignarlo a la entrada
+                        mi_waitSem();
+                        entrada.ninodo = reservar_inodo('f', permisos);
+                        mi_signalSem();
+                        #if (DEBUG && (NIVEL7 || NIVEL8))
+                            printf(GRAY "[buscar_entrada()→ reservado inodo %d tipo f con permisos %d para %s]\n" RESET, entrada.ninodo, permisos, inicial);
+                        #endif
+                    }
+
+                    if (entrada.ninodo < 0) return FALLO;
+
+                    if (mi_write_f(*p_inodo_dir, &entrada, cant_entradas_inodo * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
+                        // si (se había reservado un inodo para la entrada) entonces liberar el inodo
+                        if (entrada.ninodo != -1) {
+                            mi_waitSem();
+                            liberar_inodo(entrada.ninodo);
+                            mi_signalSem();
+                        }
+                        return FALLO; // -1
+                    }
+                    
+                    #if (DEBUG && (NIVEL7 || NIVEL8))
+                        printf(GRAY "[buscar_entrada()→ creada entrada: %s, %d]\n" RESET, entrada.nombre, entrada.ninodo);
+                    #endif
+                    
+                    // Actualizamos *p_entrada para que refleje la posición donde se acaba de escribir
+                    *p_entrada = num_entrada_inodo;
+                }
+                break;
+        }
+    }
+
+    if (strlen(final) == 0 || strcmp(final, "/") == 0 || tipo == 'f') {
+        if ((encontrada == 1) && (reservar == 1)) {
             return ERROR_ENTRADA_YA_EXISTENTE;
         }
+        // cortamos la recursividad
+        // asignar a *p_inodo el numero de inodo del directorio o fichero creado o leido
         *p_inodo = entrada.ninodo;
+        // asignar a *p_entrada el número de su entrada dentro del último directorio que lo contiene
         *p_entrada = num_entrada_inodo;
-
-        return EXITO;
+        return EXITO; // 0
+    } else {
+        // asignamos a *p_inodo_dir el puntero al inodo que se indica en la entrada encontrada;
+        *p_inodo_dir = entrada.ninodo;
+        return buscar_entrada(final, p_inodo_dir, p_inodo, p_entrada, reservar, permisos);
     }
-
-    // Recursividad
-    *p_inodo_dir = entrada.ninodo;
-    return buscar_entrada(final, p_inodo_dir, p_inodo, p_entrada, reservar, permisos);
 }
 
 
