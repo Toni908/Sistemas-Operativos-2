@@ -74,6 +74,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     int cant_entradas_inodo;
     int num_entrada_inodo = 0;
 
+    int entradas_por_bloque = BLOCKSIZE / sizeof(struct entrada);
+    struct entrada buffer_lectura[entradas_por_bloque];
+
     if(bread(posSB, &SB) == FALLO) return FALLO;
 
     // Caso raíz
@@ -106,10 +109,32 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada);
 
     // Buscar entrada
-    while (num_entrada_inodo < cant_entradas_inodo) {
-        if (mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) < 0) return FALLO;
-        if (strcmp(inicial, entrada.nombre) == 0) break;
-        num_entrada_inodo++;
+    if (cant_entradas_inodo > 0) {
+        int entradas_por_bloque = BLOCKSIZE / sizeof(struct entrada);
+        struct entrada buffer_lectura[entradas_por_bloque];
+        memset(buffer_lectura, 0, sizeof(buffer_lectura));
+
+        // Leemos el primer bloque antes del while
+        if (mi_read_f(*p_inodo_dir, buffer_lectura, 0, sizeof(buffer_lectura)) < 0) return FALLO;
+        entrada = buffer_lectura[0];
+
+        // Mientras no lleguemos al final y no hayamos encontrado el nombre
+        while ((num_entrada_inodo < cant_entradas_inodo) && (strcmp(inicial, entrada.nombre) != 0)) {
+            num_entrada_inodo++;
+            
+            // Si tras incrementar aún estamos dentro de los límites, cargamos la siguiente entrada
+            if (num_entrada_inodo < cant_entradas_inodo) {
+                // Si el nuevo índice es múltiplo de entradas_por_bloque, leemos el siguiente bloque
+                if (num_entrada_inodo % entradas_por_bloque == 0) {
+                    memset(buffer_lectura, 0, sizeof(buffer_lectura));
+                    if (mi_read_f(*p_inodo_dir, buffer_lectura, num_entrada_inodo * sizeof(struct entrada), sizeof(buffer_lectura)) < 0) {
+                        return FALLO;
+                    }
+                }
+                // Actualizamos la entrada actual desde el buffer
+                entrada = buffer_lectura[num_entrada_inodo % entradas_por_bloque];
+            }
+        }
     }
 
     // Si no existe el inodo y hay que crearlo
