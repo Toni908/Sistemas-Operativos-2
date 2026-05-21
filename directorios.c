@@ -104,9 +104,8 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
         #endif
         return ERROR_PERMISO_LECTURA;
     }
-    
-    // Calcular número de entradas, pa saber hasta donde iterar
-    cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada);
+
+    cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada); // cuantas entradas tiene el inodo en total entre todos los bloques
 
     // Buscar entrada
     if (cant_entradas_inodo > 0) {
@@ -183,12 +182,12 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
         #endif
     }
 
-    // Leer entrada encontrada (si ya existía)
-    if (num_entrada_inodo < cant_entradas_inodo) {
-        if (mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
-            return FALLO;
-        }
-    }
+    // Leer entrada encontrada (si ya existía) - Claro ahora no lo necesitamos porque lo leemos arriba
+    //if (num_entrada_inodo < cant_entradas_inodo) {
+    //    if (mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
+    //        return FALLO;
+    //    }
+    //}
 
     // Caso final
     if (strcmp(final, "/") == 0 || tipo == 'f') {
