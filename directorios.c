@@ -110,7 +110,6 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 
     // Buscar entrada
     if (cant_entradas_inodo > 0) {
-        buffer_lectura[entradas_por_bloque];
         memset(buffer_lectura, 0, sizeof(buffer_lectura));
 
         // Leemos el primer bloque antes del while
