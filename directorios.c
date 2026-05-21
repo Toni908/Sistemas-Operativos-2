@@ -119,13 +119,30 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
         }
         // Extraemos la primera entrada (índice 0)
         entrada = buffer_lectura[num_entrada_inodo % entradas_por_bloque];
+
         while (num_entrada_inodo < cant_entradas_inodo) {
-            num_entrada_inodo++;
+            
             // ¿Es la entrada que buscamos?
             if (strcmp(entrada.nombre, inicial) == 0) {
                 encontrada = 1;
                 *p_entrada = num_entrada_inodo;
                 break; // Salimos inmediatamente si la encontramos
+            }
+            
+            // Avanzamos al siguiente índice
+            num_entrada_inodo++;
+
+            // Si al avanzar aún quedan entradas por revisar
+            if (num_entrada_inodo < cant_entradas_inodo) {
+                // y si nos hemos acabado el bloque
+                if (num_entrada_inodo % entradas_por_bloque == 0) {
+                    memset(buffer_lectura, 0, sizeof(buffer_lectura));
+                    if (mi_read_f(*p_inodo_dir, buffer_lectura, num_entrada_inodo * sizeof(struct entrada), sizeof(buffer_lectura)) < 0) {
+                        return FALLO;
+                    }
+                }
+                // Leemos la siguiente entrada del buffer
+                entrada = buffer_lectura[num_entrada_inodo % entradas_por_bloque];
             }
         }
     }
