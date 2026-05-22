@@ -1,6 +1,8 @@
 //Antonio García Font y Maria Isabel Herrero Soteras  
 #include "simulacion.h"
 
+#define NIVEL12 1
+
 int acabados = 0;
 
 void reaper(int signum) {
@@ -67,6 +69,10 @@ int main(int argc, char *argv[]) {
 
                 // Escribir el registro
                 mi_write(path_fichero, &reg, reg.nRegistro * sizeof(struct REGISTRO), sizeof(struct REGISTRO));
+
+                #if (NIVEL12)
+                    printf("[simulación.c → Escritura %d en %s]\n", n, path_fichero);
+                #endif
                 
                 // Esperar 0,05 seg
                 usleep(50000); 
