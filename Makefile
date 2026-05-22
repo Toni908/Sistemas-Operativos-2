@@ -1,6 +1,6 @@
 #//Antonio García Font y Maria Isabel Herrero Soteras  
 CC=gcc
-CFLAGS=-c -g -Wall -std=gnu17
+CFLAGS=-c -g -Wall -std=gnu99
 LDFLAGS=-pthread
 
 SOURCES=bloques.c mi_mkfs.c ficheros_basico.c leer_sf.c escribir.c leer.c permitir.c ficheros.c truncar.c directorios.c mi_mkdir.c mi_chmod.c mi_ls.c mi_stat.c mi_touch.c  mi_escribir.c mi_cat.c mi_escribir_varios.c prueba_cache_tabla.c mi_link.c mi_rm.c mi_rmdir.c simulacion.c verificacion.c
@@ -12,10 +12,10 @@ OBJS=$(SOURCES:.c=.o)
 all: $(OBJS) $(PROGRAMS)
 
 $(PROGRAMS): $(LIBRARIES) $(INCLUDES)
-	$(CC) $(LDFLAGS) $(LIBRARIES) $@.o -o $@
+  $(CC) $(LDFLAGS) $(LIBRARIES) $@.o -o $@
 
 %.o: %.c $(INCLUDES)
-	$(CC) $(CFLAGS) -o $@ -c $<
+  $(CC) $(CFLAGS) -o $@ -c $<
 
 .PHONY: clean
 clean: 

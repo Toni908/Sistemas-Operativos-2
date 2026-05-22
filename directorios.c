@@ -443,7 +443,6 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     return returnValue;
 }
 
-// leer contenido de un fichero
 // leer contenido de un fichero con soporte de caché FIFO/LRU
 int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes) {
     int p_inodo = -1;
@@ -517,9 +516,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
         #endif
     }
 
-    mi_waitSem(); // Nivel 11 
     int returnvalue = mi_read_f(p_inodo, buf, offset, nbytes);
-    mi_signalSem();
 
     return returnvalue;
 }
@@ -541,23 +538,27 @@ int mi_link(const char *camino1, const char *camino2){
     // camino1 debe existir
     if ((error = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 0)) < 0){
         mostrar_error_buscar_entrada(error);
+        mi_signalSem();
         return FALLO;
     }
 
     // leer inodo original
     if (leer_inodo(p_inodo1, &inodo) < 0){
+        mi_signalSem();
         return FALLO;
     }
 
     // no permitir enlaces a directorios
     if (inodo.tipo != 'f'){
         fprintf(stderr, RED "Error: No se permiten enlaces a directorios.\n" RESET);
+        mi_signalSem();
         return FALLO;
     }
 
     // comprobar permisos lectura
     if (!(inodo.permisos & 4)){
         fprintf(stderr, RED "Error: Permiso denegado de lectura.\n" RESET);
+        mi_signalSem();
         return FALLO;
     }
 
@@ -565,12 +566,14 @@ int mi_link(const char *camino1, const char *camino2){
     // debe NO existir
     if ((error = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6)) < 0){
         mostrar_error_buscar_entrada(error);
+        mi_signalSem();
         return FALLO;
     }
 
     // leer entrada creada
     if (mi_read_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0){
         liberar_inodo(p_inodo2);
+        mi_signalSem();
         return FALLO;
     }
 
@@ -580,11 +583,13 @@ int mi_link(const char *camino1, const char *camino2){
     // escribir entrada modificada
     if (mi_write_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0){
         liberar_inodo(p_inodo2);
+        mi_signalSem();
         return FALLO;
     }
 
     // liberar el inodo reservado para camino2
     if (liberar_inodo(p_inodo2) < 0){
+        mi_signalSem();
         return FALLO;
     }
 
@@ -593,6 +598,7 @@ int mi_link(const char *camino1, const char *camino2){
     inodo.ctime = time(NULL);
 
     if (escribir_inodo(p_inodo1, &inodo) < 0){
+        mi_signalSem();
         return FALLO;
     }
     mi_signalSem();
@@ -610,25 +616,30 @@ int mi_unlink(const char *camino){
     mi_waitSem();
 
     if (strcmp(camino, "/") == 0){
+        mi_signalSem();
         return FALLO;
     }
 
     if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0)) < 0){
         mostrar_error_buscar_entrada(error);
+        mi_signalSem();
         return FALLO;
     }
 
     if (leer_inodo(p_inodo, &inodo) < 0){
+        mi_signalSem();
         return FALLO;
     }
 
     // si es directorio debe estar vacío
     if (inodo.tipo == 'd' && inodo.tamEnBytesLog > 0){
         fprintf(stderr, RED "Error: El directorio %s no está vacío\n" RESET, camino);
+        mi_signalSem();
         return FALLO;
     }
 
     if (leer_inodo(p_inodo_dir, &inodo_dir) < 0){
+        mi_signalSem();
         return FALLO;
     }
 
@@ -637,16 +648,19 @@ int mi_unlink(const char *camino){
     // si no es la última entrada
     if (p_entrada != num_entradas - 1){
         if (mi_read_f(p_inodo_dir, &ultima_entrada, (num_entradas - 1) * sizeof(struct entrada), sizeof(struct entrada)) < 0){
+            mi_signalSem();
             return FALLO;
         }
 
         if (mi_write_f(p_inodo_dir, &ultima_entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) < 0){
+            mi_signalSem();
             return FALLO;
         }
     }
 
     // truncar una entrada
     if (mi_truncar_f(p_inodo_dir, inodo_dir.tamEnBytesLog - sizeof(struct entrada)) < 0){
+        mi_signalSem();
         return FALLO;
     }
 
