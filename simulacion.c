@@ -1,7 +1,7 @@
 //Antonio García Font y Maria Isabel Herrero Soteras  
 #include "simulacion.h"
 
-#define NIVEL12 1
+#define NIVEL12 0
 
 int acabados = 0;
 
