@@ -1,3 +1,4 @@
+//Antonio García Font y Maria Isabel Herrero Soteras  
 #include "directorios.h"
 
 int main(int argc, char **argv){

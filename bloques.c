@@ -9,6 +9,9 @@ static unsigned int contSem = 0;
 //Funcion para montar el dipositivo virtual
 int bmount(const char *camino){
     umask(0000); //para quitar los permisos default que da linux, y podamos poner de verdad los permisos que queremos, por defecto es 22
+    if (descriptor > 0) {
+       close(descriptor);
+    }
     descriptor = open(camino, O_RDWR | O_CREAT, 0666); //Abrimos el fichero
     if(descriptor == FALLO){ 
         perror(RED "Error"); 
@@ -23,7 +26,8 @@ int bmount(const char *camino){
 
 //Funcion para desmontar el dispotivo viertual
 int bumount(){
-    if(close(descriptor) == FALLO){
+    descriptor = close(descriptor);  //close() devuelve 0 en caso de éxito
+    if(descriptor == FALLO){
         perror(RED "Error");
         return FALLO;
     }

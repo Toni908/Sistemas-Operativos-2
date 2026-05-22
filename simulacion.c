@@ -1,6 +1,8 @@
+//Antonio García Font y Maria Isabel Herrero Soteras  
 #include "simulacion.h"
 
-// Implementación de la función enterrador
+int acabados = 0;
+
 void reaper(int signum) {
     pid_t ended;
     signal(SIGCHLD, reaper);
@@ -10,131 +12,62 @@ void reaper(int signum) {
 }
 
 int main(int argc, char *argv[]) {
-    // Comprobar sintaxis del comando
     if (argc != 2) {
-        fprintf(stderr, "Sintaxis: ./simulacion <disco>\n");
-        return EXIT_FAILURE;
+        fprintf(stderr, "Uso: ./simulacion <nombre_disco>\n");
+        return -1;
     }
 
-    // Asociar la señal SIGCHLD al enterrador
     signal(SIGCHLD, reaper);
+    
+    // Crear directorio de simulación con fecha/hora [cite: 23]
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    char dir_sim[64];
+    sprintf(dir_sim, "/simul_%04d%02d%02d%02d%02d%02d/", 
+            tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, 
+            tm->tm_hour, tm->tm_min, tm->tm_sec);
 
-    // Montar el dispositivo virtual (padre)
-    if (bmount(argv[1]) == -1) {
-        fprintf(stderr, "Error al montar el dispositivo virtual\n");
-        return EXIT_FAILURE;
-    }
+    if (bmount(argv[1]) == -1) return -1;
+    mi_mkdir(dir_sim);
+    bumount();
 
-    // Crear el directorio de simulación con formato: /simul_aaaammddhhmmss/
-    time_t now = time(NULL);
-    struct tm *tm_info = localtime(&now);
-    char dirname[100];
-    sprintf(dirname, "/simul_%04d%02d%02d%02d%02d%02d/",
-            tm_info->tm_year + 1900,
-            tm_info->tm_mon + 1,
-            tm_info->tm_mday,
-            tm_info->tm_hour,
-            tm_info->tm_min,
-            tm_info->tm_sec);
-
-    if (mi_creat(dirname, 6) == -1) {
-        fprintf(stderr, "Error al crear el directorio de simulación\n");
-        bumount();
-        return EXIT_FAILURE;
-    }
-
-    printf("*** SIMULACIÓN DE %d PROCESOS REALIZANDO CADA UNO %d ESCRITURAS ***\n", 
-           NUMPROCESOS, NUMESCRITURAS);
-
-    // Generar NUMPROCESOS procesos
-    for (int proceso = 1; proceso <= NUMPROCESOS; proceso++) {
+    for (int i = 1; i <= NUMPROCESOS; i++) {
         pid_t pid = fork();
-
-        if (pid == 0) {
-            // PROCESO HIJO
+        if (pid == 0) { // Hijo
+            bmount(argv[1]);
             
-            // Montar el dispositivo (cada hijo monta su propio descriptor)
-            if (bmount(argv[1]) == -1) {
-                fprintf(stderr, "[Hijo %d] Error al montar el dispositivo\n", getpid());
-                exit(EXIT_FAILURE);
-            }
-
-            // Crear el directorio del proceso hijo: proceso_PID
-            char process_dir[150];
-            sprintf(process_dir, "%sproceso_%d/", dirname, getpid());
+            char path_proceso[128];
+            sprintf(path_proceso, "%sproceso_%d/", dir_sim, getpid());
+            mi_mkdir(path_proceso);
             
-            if (mi_creat(process_dir, 6) == -1) {
-                fprintf(stderr, "[Hijo %d] Error al crear directorio del proceso\n", getpid());
-                bumount();
-                exit(EXIT_FAILURE);
-            }
+            char path_fichero[256];
+            sprintf(path_fichero, "%sprueba.dat", path_proceso);
+            mi_creat(path_fichero, 6); // Asumiendo mi_creat o similar
 
-            // Crear el fichero prueba.dat dentro del directorio del proceso
-            char filepath[200];
-            sprintf(filepath, "%sprueba.dat", process_dir);
-            
-            if (mi_creat(filepath, 6) == -1) {
-                fprintf(stderr, "[Hijo %d] Error al crear fichero prueba.dat\n", getpid());
-                bumount();
-                exit(EXIT_FAILURE);
-            }
-
-            // Inicializar la semilla de números aleatorios
             srand(time(NULL) + getpid());
 
-            // Realizar NUMESCRITURAS escrituras
-            for (int nescritura = 1; nescritura <= NUMESCRITURAS; nescritura++) {
-                // Inicializar el registro
-                struct REGISTRO registro;
-                registro.fecha = time(NULL);
-                registro.pid = getpid();
-                registro.nEscritura = nescritura;
-                registro.nRegistro = rand() % REGMAX;  // [0, 499.999]
+            for (int n = 1; n <= NUMESCRITURAS; n++) {
+                struct REGISTRO reg;
+                reg.fecha = time(NULL);
+                reg.pid = getpid();
+                reg.nEscritura = n;
+                reg.nRegistro = rand() % REGMAX;
 
-                // Escribir el registro en la posición aleatoria
-                int offset = registro.nRegistro * sizeof(struct REGISTRO);
-                
-                if (mi_write(filepath, &registro, offset, sizeof(struct REGISTRO)) == -1) {
-                    fprintf(stderr, "[Hijo %d] Error en escritura %d\n", getpid(), nescritura);
-                    bumount();
-                    exit(EXIT_FAILURE);
-                }
-
-                // Descomentar para debugging con pocos procesos
-                // fprintf(stderr, "[simulación.c → Escritura %d en %sprueba.dat]\n", 
-                //         nescritura, process_dir);
-
-                // Esperar 0,05 segundos (50.000 microsegundos)
-                usleep(50000);
+                mi_write(path_fichero, &reg, reg.nRegistro * sizeof(struct REGISTRO), sizeof(struct REGISTRO));
+                usleep(50000); // 0.05 seg [cite: 57]
             }
-
-            // Mensaje final del proceso
-            printf("[Proceso %d: Completadas %d escrituras en %sprueba.dat]\n", 
-                   proceso, NUMESCRITURAS, process_dir);
-
-            // Desmontar el dispositivo
-            bumount();
             
-            // Finalizar el proceso hijo
-            exit(EXIT_SUCCESS);
-            
-        } else if (pid < 0) {
-            fprintf(stderr, "Error al crear el proceso %d\n", proceso);
             bumount();
-            return EXIT_FAILURE;
+            exit(0);
+        } else if (pid > 0) {
+            usleep(150000); // 0.15 seg entre procesos [cite: 28]
         }
-
-        // PROCESO PADRE: Esperar 0,15 segundos antes de lanzar el siguiente proceso
-        usleep(150000);  // 150.000 microsegundos = 0,15 segundos
     }
 
-    // Permitir que el padre espere por todos los hijos
     while (acabados < NUMPROCESOS) {
         pause();
     }
 
-    // Desmontar el dispositivo (padre)
-    bumount();
-
-    return EXIT_SUCCESS;
+    printf("Simulación finalizada.\n");
+    return 0;
 }

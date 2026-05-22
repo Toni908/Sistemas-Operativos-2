@@ -1,3 +1,4 @@
+//Antonio García Font y Maria Isabel Herrero Soteras  
 #include <string.h>
 #include <stdio.h>
 

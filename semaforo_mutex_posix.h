@@ -1,4 +1,4 @@
- /* semaforo_mutex_posix.h */
+//Antonio García Font y Maria Isabel Herrero Soteras  
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <fcntl.h>

@@ -1,20 +1,16 @@
+//Antonio García Font y Maria Isabel Herrero Soteras  
 #include "directorios.h"
 #include <sys/wait.h>
 #include <signal.h>
 
+#define REGMAX 500000
 #define NUMPROCESOS 100
 #define NUMESCRITURAS 50
-#define REGMAX 500000
+#define TAM_DIR 32
 
 struct REGISTRO {
-    time_t fecha;       // Precisión segundos
-    pid_t pid;          // PID del proceso que lo ha creado
-    int nEscritura;     // Entero con el nº de escritura, de 1 a 50
-    int nRegistro;      // Entero con el nº del registro dentro del fichero: [0..REGMAX-1]
+    time_t fecha;
+    pid_t pid;
+    int nEscritura;
+    int nRegistro;
 };
-
-// Variable global para contar procesos finalizados
-int acabados = 0;
-
-// Declaración de la función enterrador
-void reaper(int signum);
