@@ -4,9 +4,8 @@
 #include <signal.h>
 
 #define REGMAX 500000
-#define NUMPROCESOS 100
-#define NUMESCRITURAS 50
-#define TAM_DIR 32
+#define NUMPROCESOS 3
+#define NUMESCRITURAS 10
 
 struct REGISTRO {
     time_t fecha;
