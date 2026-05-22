@@ -7,19 +7,19 @@ int main(int argc, char *argv[]) {
     // 1. Comprobar la sintaxis
     if (argc != 3) {
         fprintf(stderr, "Uso: %s <nombre_dispositivo> <directorio_simulación>\n", argv[0]);
-        return ERROR;
+        return FALLO;
     }
 
     // 2. Montar el dispositivo virtual
-    if (bmount(argv[1]) == ERROR) {
-        return ERROR;
+    if (bmount(argv[1]) == FALLO) {
+        return FALLO;
     }
 
     // 3. Calcular el nº de entradas del directorio de simulación a partir del stat de su inodo
     struct STAT stat;
     if (mi_stat(argv[2], &stat) < 0) {
         bumount();
-        return ERROR;
+        return FALLO;
     }
 
     int numentradas = stat.tamEnBytesLog / sizeof(struct entrada);
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     if (numentradas != NUMPROCESOS) {
         fprintf(stderr, "Error: El número de entradas no coincide con el número de procesos.\n");
         bumount();
-        return ERROR;
+        return FALLO;
     }
 
     printf("dir_sim: %s\n", argv[2]);
@@ -39,14 +39,14 @@ int main(int argc, char *argv[]) {
     sprintf(camino_informe, "%sinforme.txt", argv[2]);
     if (mi_creat(camino_informe, 6) < 0) {
         bumount();
-        return ERROR;
+        return FALLO;
     }
 
     // 6. Leer los directorios correspondientes a los procesos
     struct entrada entradas_procesos[NUMPROCESOS];
     if (mi_read(argv[2], entradas_procesos, 0, sizeof(entradas_procesos)) < 0) {
         bumount();
-        return ERROR;
+        return FALLO;
     }
 
     int offset_informe = 0; // Para llevar la cuenta de dónde escribir en informe.txt
@@ -149,5 +149,5 @@ int main(int argc, char *argv[]) {
     // 8. Desmontar el dispositivo virtual
     bumount();
 
-    return 0;
+    return EXITO;
 }
