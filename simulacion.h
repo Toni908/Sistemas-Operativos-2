@@ -4,8 +4,8 @@
 #include <signal.h>
 
 #define REGMAX 500000
-#define NUMPROCESOS 10
-#define NUMESCRITURAS 20
+#define NUMPROCESOS 30
+#define NUMESCRITURAS 50
 
 struct REGISTRO {
     time_t fecha;

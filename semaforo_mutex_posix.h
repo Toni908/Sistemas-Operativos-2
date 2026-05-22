@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <semaphore.h>
+#include <stdio.h> 
 
 
 #define SEM_NAME "/mymutex" /* Usamos este nombre para el semáforo mutex */
