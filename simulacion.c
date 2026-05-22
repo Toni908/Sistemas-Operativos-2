@@ -8,7 +8,7 @@ int acabados = 0;
 void reaper(int signum) {
     pid_t ended;
     signal(SIGCHLD, reaper);
-    while ((ended = waitpid(-1, NULL, WNOHANG)) > 0) {
+    while ((ended = waitpid(ERROR, NULL, WNOHANG)) > 0) {
         acabados++;
     }
 }
@@ -17,14 +17,14 @@ int main(int argc, char *argv[]) {
     // 1. Comprobar sintaxis
     if (argc != 2) {
         fprintf(stderr, "Uso: ./simulacion <nombre_disco>\n");
-        return -1;
+        return ERROR;
     }
 
     // 2. Asociar señal SIGCHLD al enterrador
     signal(SIGCHLD, reaper);
     
     // 3. Montar el dispositivo (padre)
-    if (bmount(argv[1]) == -1) return -1;
+    if (bmount(argv[1]) == ERROR) return ERROR;
 
     // 4. Crear el directorio de simulación: /simul_aaaammddhhmmss/
     time_t t = time(NULL);
