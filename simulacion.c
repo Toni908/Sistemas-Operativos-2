@@ -77,6 +77,8 @@ int main(int argc, char *argv[]) {
                 // Esperar 0,05 seg
                 usleep(50000); 
             }
+
+            printf("[Proceso %d: Completadas %d escrituras en %s]\n", i, NUMESCRITURAS, path_fichero);
             
             bumount();
             exit(0); // Necesario para disparar SIGCHLD
