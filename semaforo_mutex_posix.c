@@ -1,3 +1,4 @@
+//Antonio García Font y Maria Isabel Herrero Soteras  
 #include "semaforo_mutex_posix.h"
 
 
@@ -41,7 +42,3 @@ void signalSem(sem_t *sem) {
 void waitSem(sem_t *sem) {
    sem_wait(sem);
 }
-
-
-
-
