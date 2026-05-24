@@ -31,7 +31,10 @@ int bumount(){
         perror(RED "Error");
         return FALLO;
     }
-    deleteSem(); //eliminamos el semaforo mutex
+    if (mutex != NULL) {
+        deleteSem(mutex); //eliminamos el semaforo mutex
+        mutex = NULL;
+    }
     descriptor = EXITO; //para dejarlo limpio
     return descriptor;
 }

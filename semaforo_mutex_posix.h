@@ -11,7 +11,7 @@
 
 
 sem_t *initSem();
-void deleteSem();
+void deleteSem(sem_t *sem);
 void signalSem(sem_t *sem);
 void waitSem(sem_t *sem);
 

@@ -12,11 +12,11 @@ OBJS=$(SOURCES:.c=.o)
 all: $(OBJS) $(PROGRAMS)
 
 $(PROGRAMS): $(LIBRARIES) $(INCLUDES)
-  $(CC) $(LDFLAGS) $(LIBRARIES) $@.o -o $@
+	$(CC) $@.o $(LIBRARIES) $(LDFLAGS) -o $@
 
 %.o: %.c $(INCLUDES)
-  $(CC) $(CFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 .PHONY: clean
-clean: 
+clean:
 	rm -rf *.o *~ $(PROGRAMS) disco* ext* *.exe resultado.txt

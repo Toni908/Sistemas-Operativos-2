@@ -107,7 +107,7 @@ int initAI(){
     int contInodos = SB.posPrimerInodoLibre +1;
     for(int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++){
          if (bread(i, inodos) == FALLO) return FALLO;
-        for(int j = 0; j <= BLOCKSIZE/INODOSIZE; j++){
+        for(int j = 0; j < BLOCKSIZE/INODOSIZE; j++){
             inodos[j].tipo = 'l'; //libre
             if(contInodos < SB.totInodos){
                 inodos[j].punterosDirectos[0] = contInodos;
@@ -288,10 +288,10 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
         inodo.btime = time(NULL);
         inodo.numBloquesOcupados = 0;
 
-        for(int i = 0; i < sizeof(inodo.punterosDirectos); i++){
+        for(int i = 0; i < sizeof(inodo.punterosDirectos) / sizeof(inodo.punterosDirectos[0]); i++){
             inodo.punterosDirectos[i] = 0;
         }
-        for(int i = 0; i < sizeof(inodo.punterosIndirectos); i++){
+        for(int i = 0; i < sizeof(inodo.punterosIndirectos) / sizeof(inodo.punterosIndirectos[0]); i++){
             inodo.punterosIndirectos[i] = 0;
         }
 
