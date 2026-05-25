@@ -204,7 +204,7 @@ int mi_creat(const char *camino, unsigned char permisos){
 }
 
 // La funcion pone el contenido del directorio/fichero en un buffer de memoria
-int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
+int mi_dir(const char *camino, char *buffer, char flag) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;

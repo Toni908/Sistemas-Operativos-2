@@ -40,7 +40,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 void mostrar_error_buscar_entrada(int error);
 // Nivel 8
 int mi_creat(const char *camino, unsigned char permisos);
-int mi_dir(const char *camino, char *buffer, char tipo, char flag);
+int mi_dir(const char *camino, char *buffer, char flag);
 int mi_chmod(const char *camino, unsigned char permisos);
 int mi_stat(const char *camino, struct STAT *p_stat);
 // Nivel 9

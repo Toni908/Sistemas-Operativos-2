@@ -38,7 +38,7 @@ int main(int argc, char **argv){
     
     // Llamar a mi_dir() según el formato
     buffer[0] = '\0';
-    total = mi_dir(ruta, buffer, 'd', flag);  // 'd' porque siempre listamos directorios
+    total = mi_dir(ruta, buffer, flag);
     
     if(total < 0){
         mostrar_error_buscar_entrada(total);
