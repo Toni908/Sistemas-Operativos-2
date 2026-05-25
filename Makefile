@@ -19,4 +19,4 @@ $(PROGRAMS): $(LIBRARIES) $(INCLUDES)
 
 .PHONY: clean
 clean:
-	rm -rf *.o *~ $(PROGRAMS) disco* ext* *.exe resultado.txt
+	rm -rf *.o *~ $(PROGRAMS) disco* ext* *.exe resultado.txt res.txt
