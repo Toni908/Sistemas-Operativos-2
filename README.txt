@@ -1,3 +1,5 @@
+//Antonio García Font y Maria Isabel Herrero Soteras  
+
 # Sistemas-Operativos-2 - Entrega 3
 Proyecto Sistemas Operativos 2 - Ingenieria Informatica UIB
 
