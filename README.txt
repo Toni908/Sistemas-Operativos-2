@@ -2,8 +2,8 @@
 Proyecto Sistemas Operativos 2 - Ingenieria Informatica UIB
 
 ## ejecutar scripte1.sh
-Si se quiere ejecutar el script1, se tendra que actibar el debug ENTREGA1 (para)
-que salga igual que en el ejemplo script1 de la evaluacion, se encuentra en ficheros_basicos.c
+Si se quiere ejecutar el script1, se tendra que activar todos los debug de ficheros_basico.c a 1 para
+que salga igual que en el ejemplo script1 de la evaluacion.
 
 ## Que esta Dentro de la entrega?
 Hasta el nivel 13
