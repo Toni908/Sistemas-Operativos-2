@@ -378,7 +378,7 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
             if (strcmp(camino, UltimaEntradaEscritura.camino) == 0) {
                 p_inodo = UltimaEntradaEscritura.p_inodo;
                 #if (DEBUG && NIVEL9)
-                    printf(GRAY "[mi_write() → Utilizamos la caché de escritura]\n" RESET);
+                    printf(GRAY "[mi_write() → Utilizamos la caché de escritura en vez de llamar a buscar_entrada()]\n" RESET);
                 #endif
             }
         #else     // Búsqueda en tabla (FIFO o LRU)

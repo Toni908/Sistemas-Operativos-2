@@ -13,6 +13,11 @@ mi_touch y mi_rmdir
 
 ## Cache de caminos
 Para cambiar entre FIFO LRU, o el basico Ultima L/E, ir a directorios.h y cambiar USARCACHE, ahi se comenta los modos.
+Para probar L/E:
+./mi_mkfs disco 100000
+./mi_touch disco 6 /fic3
+./mi_escribir_varios disco /fic3 "--texto repetido en 10 bloques--" 0 
+habra que activar el debug 9 en directorios.c para ver extra info
 
 ## Solucionado de entrega2
 Ahora mi_dir y buscar_entrada no leen entrada a entrada, sino que van leyendo en un buffer de tamaño blocksize hasta que lo encuentren o hasta
