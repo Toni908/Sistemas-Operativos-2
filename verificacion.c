@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
         char camino_prueba[128];
         sprintf(camino_prueba, "%s%s/prueba.dat", argv[2], entradas_procesos[i].nombre);
 
-        int cant_registros_buffer_escrituras = 256;
+        int cant_registros_buffer_escrituras = 256; // 256 * 24 = 6144 - 6 bloques a la vez vamos
         struct REGISTRO buffer_escrituras[cant_registros_buffer_escrituras];
         
         int offset_lectura = 0;
