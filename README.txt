@@ -32,3 +32,16 @@ resultado los archivos, un mi_rmdir no fue quitado ya que no molesta la ejecucio
 ## Scripte2.sh modificado
 Comentado en funciones opcionales, dos lineas fueron modificadas del scripte2.sh ya que no utilizamos mi_rmdir para conseguir el mismo resultado que en las pruebas con mi_rm.
 
+
+
+# Sistemas-Operativos-2 - Entrega 3
+
+## ejecutar scripte1.sh
+Si se quiere ejecutar el script1, se tendra que actibar el debug ENTREGA1 (para)
+que salga igual que en el ejemplo script1 de la evaluacion, se encuentra en ficheros_basicos.c
+
+## Que esta Dentro de la entrega?
+Hasta el nivel 13
+Mejora de mi_ls
+Cache de directorios Normal, FIFO, y LRU
+mi_touch y mi_rmdir
